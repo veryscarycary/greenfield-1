@@ -3,5 +3,4 @@
   game.state.add("stage1", App.stage1);
   game.state.add("stage2", App.stage2);
   game.state.start("stage1");
-  game.score = 0;
 })();

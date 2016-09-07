@@ -25,12 +25,15 @@ App.stage1.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
 
+    
+
   },
 
   update: function() {
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
     this.physics.arcade.collide(player, platforms);
+    
 
     if (cursors.left.isDown) {
       player.body.velocity.x = -150;
@@ -49,12 +52,29 @@ App.stage1.prototype = {
     if (cursors.up.isDown) {
       App.info.score += 10;
       scoreText.text = 'Score:' + App.info.score;
+      console.log(this);
     }
+    this.socketCheck(App.info.socket, this);
 
+
+  },
+
+  socketCheck: function(socket, context) {
+
+    socket.on('makePlayer', function(counter) {
+      console.log(this);
+      counter = context.add.sprite(32, context.world.height - 150, 'dude');
+      context.physics.arcade.enable(counter);
+      context.physics.arcade.enable(counter);
+      counter.body.collideWorldBounds = true;
+
+      counter.body.gravity.y = 300;
+    });
   }
 }; 
 
 App.info = {
   score: 0,
-  life: 0
+  life: 0,
+  socket: io.connect('http://localhost:3000')
 };

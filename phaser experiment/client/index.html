@@ -22,11 +22,6 @@ var score = 0;
 var scoreText;
 var socket = io.connect('http://localhost:3000');
 var playerNumber = 'player1';
-
-socket.on('setPlayer', function (counter) {
-  playerNumber = 'player' + counter;
-});
-
 var players = {};
 
 function preload() {
@@ -37,131 +32,141 @@ function preload() {
   game.load.spritesheet('dude2', 'assets/dude.png', 32, 48);
 }
 
-function create() {
-  game.add.sprite(0, 0, 'star');
+socket.on('setPlayer', function (counter) {
+  playerNumber = 'player' + counter;
+}).then(function () {
 
-  game.physics.startSystem(Phaser.Physics.ARCADE);
-  game.add.sprite(0, 0, 'sky');
-  platforms = game.add.group();
-  platforms.enableBody = true;
+  function create() {
+    game.add.sprite(0, 0, 'star');
 
-  scoreText = game.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
-  var ground = platforms.create(0, game.world.height - 64, 'ground');
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.add.sprite(0, 0, 'sky');
+    platforms = game.add.group();
+    platforms.enableBody = true;
 
-  ground.scale.setTo(2, 2);
-  ground.body.immovable = true;
+    scoreText = game.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
+    var ground = platforms.create(0, game.world.height - 64, 'ground');
 
-  var ledge = platforms.create(400, 400, 'ground');
-  ledge.body.immovable = true;
+    ground.scale.setTo(2, 2);
+    ground.body.immovable = true;
 
-  ledge = platforms.create(-150, 250, 'ground');
-  ledge.body.immovable = true;
+    var ledge = platforms.create(400, 400, 'ground');
+    ledge.body.immovable = true;
+
+    ledge = platforms.create(-150, 250, 'ground');
+    ledge.body.immovable = true;
 
 
-  //player
-  //players.player1/2/3/4
+    //player
+    //players.player1/2/3/4
 
-  players[playerNumber] = game.add.sprite(32, game.world.height - 150, 'dude');
-  
-  game.physics.arcade.enable(players[playerNumber]);
-  players[playerNumber].body.bounce.y = 0.2;
-  players[playerNumber].body.gravity.y = 300;
-  players[playerNumber].body.collideWorldBounds = true;
-  players[playerNumber].animations.add('left', [0, 1, 2, 3], 10, true);
-  players[playerNumber].animations.add('right', [5, 6, 7, 8], 10, true);
-
-  //starts
-  stars = game.add.group();
-  stars.enableBody = true;
-  for (var i = 0; i < 12; i ++) {
-    var star = stars.create(i * 70, 0, 'star');
-    star.body.gravity.y = 6;
-    star.body.bounce.y = 0.7 + Math.random() * 0.2;
-  }
-}
-
-function update() {
-  var cursors = game.input.keyboard.createCursorKeys();
-  game.physics.arcade.collide(stars, platforms);
-  game.physics.arcade.overlap(players[playerNumber], stars, collectStar, null, this);
-
-  socket.on('setOtherPlayer', function (playerNum) { // ex: player2
-    var otherPlayerNumber = playerNum;
-
-    players[otherPlayerNumber] = game.add.sprite(32, game.world.height - 150, 'dude');
+    players[playerNumber] = game.add.sprite(32, game.world.height - 150, 'dude');
     
-    game.physics.arcade.enable(players[otherPlayerNumber]);
-    players[otherPlayerNumber].body.bounce.y = 0.2;
-    players[otherPlayerNumber].body.gravity.y = 300;
-    players[otherPlayerNumber].body.collideWorldBounds = true;
-    players[otherPlayerNumber].animations.add('left', [0, 1, 2, 3], 10, true);
-    players[otherPlayerNumber].animations.add('right', [5, 6, 7, 8], 10, true);
-  });
+    game.physics.arcade.enable(players[playerNumber]);
+    players[playerNumber].body.bounce.y = 0.2;
+    players[playerNumber].body.gravity.y = 300;
+    players[playerNumber].body.collideWorldBounds = true;
+    players[playerNumber].animations.add('left', [0, 1, 2, 3], 10, true);
+    players[playerNumber].animations.add('right', [5, 6, 7, 8], 10, true);
 
-  function collectStar (player, star) {
-    star.kill();
-    score += 10;
-    scoreText.text = 'Score: ' + score;
-  }
-
-  for (var key in players) { // this will dynamically replace the commented code below.
-    game.physics.arcade.collide(players[key], platforms);
-    for (var prop in players) {
-      if (key !== prop) {
-        game.physics.arcade.collide(players[key], players[prop]);
-        // will result in repeat collides but might work
-      }
+    //starts
+    stars = game.add.group();
+    stars.enableBody = true;
+    for (var i = 0; i < 12; i ++) {
+      var star = stars.create(i * 70, 0, 'star');
+      star.body.gravity.y = 6;
+      star.body.bounce.y = 0.7 + Math.random() * 0.2;
     }
   }
-  // game.physics.arcade.collide(players[playerNumber], platforms);
-  // game.physics.arcade.collide(player2, platforms);
-  // game.physics.arcade.collide(player2, player);
-  players[playerNumber].body.velocity.x = 0;
 
-  if (cursors.left.isDown) {
-    players[playerNumber].body.velocity.x = -150;
-    socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+  function update() {
+    var cursors = game.input.keyboard.createCursorKeys();
+    game.physics.arcade.collide(stars, platforms);
+    game.physics.arcade.overlap(players[playerNumber], stars, collectStar, null, this);
 
-    players[playerNumber].animations.play('left');
+    socket.on('setOtherPlayer', function (playerNum) { // ex: player2
+      var otherPlayerNumber = playerNum;
 
-  } else if (cursors.right.isDown) {
-    players[playerNumber].body.velocity.x = 150;
-    players[playerNumber].animations.play('right');
-    socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+      players[otherPlayerNumber] = game.add.sprite(32, game.world.height - 150, 'dude');
+      
+      game.physics.arcade.enable(players[otherPlayerNumber]);
+      players[otherPlayerNumber].body.bounce.y = 0.2;
+      players[otherPlayerNumber].body.gravity.y = 300;
+      players[otherPlayerNumber].body.collideWorldBounds = true;
+      players[otherPlayerNumber].animations.add('left', [0, 1, 2, 3], 10, true);
+      players[otherPlayerNumber].animations.add('right', [5, 6, 7, 8], 10, true);
+    });
 
-  } else {
-    players[playerNumber].animations.stop();
-    players[playerNumber].frame = 4;
-    socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+    function collectStar (player, star) {
+      star.kill();
+      score += 10;
+      scoreText.text = 'Score: ' + score;
+    }
+
+    for (var key in players) { // this will dynamically replace the commented code below.
+      game.physics.arcade.collide(players[key], platforms);
+      for (var prop in players) {
+        if (key !== prop) {
+          game.physics.arcade.collide(players[key], players[prop]);
+          // will result in repeat collides but might work
+        }
+      }
+    }
+    // game.physics.arcade.collide(players[playerNumber], platforms);
+    // game.physics.arcade.collide(player2, platforms);
+    // game.physics.arcade.collide(player2, player);
+    players[playerNumber].body.velocity.x = 0;
+
+    if (cursors.left.isDown) {
+      players[playerNumber].body.velocity.x = -150;
+      socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+
+      players[playerNumber].animations.play('left');
+
+    } else if (cursors.right.isDown) {
+      players[playerNumber].body.velocity.x = 150;
+      players[playerNumber].animations.play('right');
+      socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+
+    } else {
+      players[playerNumber].animations.stop();
+      players[playerNumber].frame = 4;
+      socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+    }
+    if (cursors.up.isDown && players[playerNumber].body.touching.down) {
+      players[playerNumber].body.velocity.y = -350;
+      socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
+    }
+
+
+    // this section updates all of the players positions in the
+    // players object
+    socket.on('player1', function (info) {
+      players.player1.x = info[0];
+      players.player1.y = info[1];
+    });
+
+    socket.on('player2', function (info) {
+      players.player2.x = info[0];
+      players.player2.y = info[1];
+    });
+
+    socket.on('player3', function (info) {
+      players.player3.x = info[0];
+      players.player3.y = info[1];
+    });
+
+    socket.on('player4', function (info) {
+      players.player4.x = info[0];
+      players.player4.y = info[1];
+    });
   }
-  if (cursors.up.isDown && players[playerNumber].body.touching.down) {
-    players[playerNumber].body.velocity.y = -350;
-    socket.emit(playerNumber, [players[playerNumber].body.x, players[playerNumber].body.y]);
-  }
+
+  
+});
 
 
-  // this section updates all of the players positions in the
-  // players object
-  socket.on('player1', function (info) {
-    players.player1.x = info[0];
-    players.player1.y = info[1];
-  });
 
-  socket.on('player2', function (info) {
-    players.player2.x = info[0];
-    players.player2.y = info[1];
-  });
-
-  socket.on('player3', function (info) {
-    players.player3.x = info[0];
-    players.player3.y = info[1];
-  });
-
-  socket.on('player4', function (info) {
-    players.player4.x = info[0];
-    players.player4.y = info[1];
-  });
-}
 
 </script>
 

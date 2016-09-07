@@ -1,3 +1,10 @@
 <div>
-  <h3>This is Signup Page</h3>
+  <h3>Sign-Up</h3>
+  <form name='sign-up' ng-submit='signup()'>
+  Username: <input type='text' ng-model='user.username'>
+  <br>
+  Password: <input type='text' ng-model='user.password'>
+  </form>
+  <br>
+    <a href="#/signin">Have an account already? Sign-in now!</a>
 </div>

@@ -1,5 +1,4 @@
 <div>
   <h3>This is Leaderboard Page</h3>
-  <div ng-repeat= 'player in leaderboard'>
-  </div>
+  <li ng-repeat= 'user in leaderboard | orderBy: "-highscore"'> {{ user }} </li>
 </div>

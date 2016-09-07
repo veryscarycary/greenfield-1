@@ -6,8 +6,8 @@ angular.module('app.signin', [])
 
   $scope.signin = function() {
   	$http({
-  		method: POST,
-  		url: //TBD
+  		method: 'POST',
+  		url: '/signin',
   		data: $scope.user
   	})
   	.then(function(){

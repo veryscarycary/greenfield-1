@@ -6,7 +6,7 @@ App.stage2 = function(game) {
 App.stage2.prototype = {
   preload: function() {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
-    this.load.image('ground','/../../../assets/platform.png');
+    this.load.image('ground', '/../../../assets/platform.png');
   },
 
   create: function() {
@@ -25,7 +25,7 @@ App.stage2.prototype = {
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
     
     App.info.socketHandlers();
-    
+
   },
 
   update: function() {
@@ -52,7 +52,7 @@ App.stage2.prototype = {
 
     }
     if (cursors.up.isDown) {
-      App.info.score +=10;
+      App.info.score += 10;
       scoreText.text = 'Score:' + App.info.score;
     }
     App.info.socket.emit('move player', {

@@ -24,7 +24,7 @@ app.get('/', function(req, res) {
 app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email']}));
 
 app.get('/auth/facebook/callback',
-    passport.authenticate('facebook', { successRedirect: '../../game.html', //TODO: path on success
+    passport.authenticate('facebook', { successRedirect: '../../main.html', //TODO: path on success
                                         failureRedirect: '../../index.html' })); //TODO: path on failure
 
 

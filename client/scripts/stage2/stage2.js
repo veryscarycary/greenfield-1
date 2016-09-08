@@ -1,8 +1,8 @@
-var stage2 = function(game) {
+App.stage2 = function(game) {
   console.log("starting stage2");
 };
 
-stage2.prototype = {
+App.stage2.prototype = {
   preload: function() {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground','/../../../assets/platform.png');
@@ -21,6 +21,8 @@ stage2.prototype = {
     player.body.gravity.y = 300;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+    scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
+
 
   },
 
@@ -39,6 +41,10 @@ stage2.prototype = {
       player.animations.stop();
       player.frame = 4;
 
+    }
+    if (cursors.up.isDown) {
+      App.info.score +=10;
+      scoreText.text = 'Score:' + App.info.score;
     }
 
   }

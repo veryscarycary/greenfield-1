@@ -8,7 +8,6 @@ global.counter = 0;
 
 mongoose.connect('mongodb://localhost/greenfield');
 
-app.use(express.static(__dirname + '/../client'));
 
 var clients = {
   1: null,
@@ -16,6 +15,7 @@ var clients = {
   3: null,
   4: null 
 };
+
 
 // Event fired every time a new client connects:
 io.on('connection', function(socket) {
@@ -28,9 +28,18 @@ io.on('connection', function(socket) {
   // this helps us keep track of each unique client id and player number
   clients[global.counter] = socket;
   // emits this message solely to that particular connecting client, nobody else
-  clients[global.counter].emit('setPlayer', global.counter);
+  io.to(socket.id).emit('setPlayer', global.counter); // <-- NEW
+  // clients[global.counter].emit('setPlayer', global.counter); <-- OLD
   //emits this to all OTHER connected clients, not the current client
   socket.broadcast.emit('setOtherPlayer', 'player' + global.counter);
+
+  // there is a problem with setOtherPlayer, in that only old instances
+  // will have a chance to set the new players. the newer connections
+  // will not have heard this event. need to find a way to give the whole player
+  // list to everyone
+
+  // moreover, evidenced by only the first client showing all of the players,
+  // i think that player1 is the only one getting the setOtherPlayer event.
 
 /////// these are for reporting back player movements to the clients
   socket.on('player1', function(info) {
@@ -51,7 +60,7 @@ io.on('connection', function(socket) {
   // When socket disconnects, remove it from the list:
   socket.on('disconnect', function() {
     for (var key in clients) {
-      if (clients[key] === socket.id) {
+      if (clients[key] === socket) {
         clients[key] = null;
         console.info('Client gone (id=' + socket.id + ').');
         // set counter back so when next player connects, it will fill
@@ -62,6 +71,7 @@ io.on('connection', function(socket) {
   });
 });
 
+app.use(express.static(__dirname + '/../client'));
 
 
 

@@ -16,7 +16,7 @@ module.exports.signUp = function (req, res) {
 
 module.exports.signIn = function (req, res) {
   // when POST on /
-  Pokemon.find(req.body, function(err, result) {
+  User.find(req.body, function(err, result) {
     if (err) {
       res.send(err);
     } else {

@@ -1,27 +1,30 @@
-angular.module('app', ['ngRoute', 'app.game', 'app.leaderboard', 'app.menu', 'app.signin', 'app.signup'])
+
+angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
 .config(function($routeProvider) {
   $routeProvider
-    .when('/signin', {
-      templateUrl: './app/signin/signin.html',
-      controller: 'SigninController'
-    })
-    .when('/signup', {
-      templateUrl: './app/signup/signup.html',
-      controller: 'SignupController'
-    })
+    // .when('/signin', {
+    //   templateUrl: './app/signin/signin.html',
+    //   Controller: 'SigninController'
+    // })
+    // .when('/signup', {
+    //   templateUrl: './app/signup/signup.html',
+    //   Controller: 'SignupController'
+    // })
+
     .when('/game', {
       templateUrl: './app/game/game.html',
       controller: 'GameController'
     })
-    .when('/menu', {
-      templateUrl: './app/menu/menu.html',
-      controller: 'MenuController'
+    .when('/profile', {
+      templateUrl: './app/profile/profile.html',
+      controller: 'ProfileController'
+
     })
     .when('/leaderboard', {
       templateUrl: './app/leaderboard/leaderboard.html',
       controller: 'LeaderboardController'
     })
     .otherwise({
-      redirectTo: '/signin'
+      redirectTo: '/profile'
     });
 });

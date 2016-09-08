@@ -10,7 +10,6 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
     //   templateUrl: './app/signup/signup.html',
     //   Controller: 'SignupController'
     // })
-
     .when('/game', {
       templateUrl: './app/game/game.html',
       controller: 'GameController'
@@ -18,7 +17,6 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
     .when('/profile', {
       templateUrl: './app/profile/profile.html',
       controller: 'ProfileController'
-
     })
     .when('/leaderboard', {
       templateUrl: './app/leaderboard/leaderboard.html',

@@ -30,6 +30,7 @@ App.stage1.prototype = {
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
 
     App.info.socketHandlers();
+    App.info.socket.emit('connect');
 
     
 
@@ -101,8 +102,10 @@ App.info = {
   socket: io.connect('http://localhost:3000'),
   socketHandlers: function () {
 
-    App.info.socket.on('connect', App.info.socketConnect());
-    App.info.socket.on('disconnect', App.info.socketDisconnect());
+    App.info.socket.on('connect', function() {
+      console.log("connected123");
+      App.info.socketConnect();});
+    App.info.socket.on('disconnect', function() {App.info.socketDisconnect();});
     App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
@@ -110,6 +113,7 @@ App.info = {
   },
   socketConnect: function() {
     console.log('connected to server');
+    console.log('players array',App.info.players);
 
     App.info.players.forEach(function (player){
       player.player.kill();

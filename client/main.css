@@ -4,4 +4,39 @@
 
 .highscore {
 	font-family: impact;
+
+body {
+	text-align: center;
+	font-family: Helvetica;
+	color: white;
+	background-color: black
+}
+
+a {
+	color: white;
+	padding-left: 50px;
+	padding-right: 50px;
+}
+
+nav {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: #202020;
+	padding: 12px;
+	margin: 0;
+}
+
+#game {
+	
+	background-color: black;
+	margin-top: 40px;
+	margin-left: 10%;
+	margin-right: 10%;
+	padding: 5px;
+}
+
+canvas {
+	margin: 0 auto;
 }

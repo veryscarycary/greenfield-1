@@ -1,3 +1,4 @@
 <div>
   <h3>This is Leaderboard Page</h3>
+  <li ng-repeat= 'user in leaderboard | orderBy: "-highscore"'> {{ user }} </li>
 </div>

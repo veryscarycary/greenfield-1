@@ -1,5 +1,6 @@
 App.stage2 = function(game) {
   console.log("starting stage2");
+  App.info.game = game;
 };
 
 App.stage2.prototype = {
@@ -23,10 +24,18 @@ App.stage2.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
 
+    App.info.socketHandlers();
 
   },
 
   update: function() {
+    for ( var i = 0; i < App.info.players.length; i ++) {
+      if (App.info.players[i].alive) { 
+        App.info.players[i].update();
+        this.physics.arcade.collide(player, App.info.players[i].player);
+      }
+    }
+
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
     this.physics.arcade.collide(player, platforms);
@@ -46,6 +55,11 @@ App.stage2.prototype = {
       App.info.score +=10;
       scoreText.text = 'Score:' + App.info.score;
     }
+    App.info.socket.emit('move player', {
+      x: player.x,
+      y: player.y,
+      angle: player.angle
+    });
 
   }
 };  

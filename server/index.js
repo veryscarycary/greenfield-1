@@ -2,24 +2,121 @@ var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var Player = require('./player.js');
+var players = [];
 global.counter = 0;
 
 app.use(express.static(__dirname + '/../client'));
 
-app.get('/', function(req,res) {
+app.get('/', function(req, res) {
   res.redirect('/index.html');
 });
 
 io.on('connection', function (socket) {
-
-  global.counter++;
-  socket.broadcast.emit('makePlayer', global.counter);
-  console.log("new player joined, player: " + global.counter + " id=" + socket.id + ".");
-  socket.on('disconnect', function() {
-    global.counter--;
-
-  });
+  connectionFuncs(socket);
 });
 
+
+//series of listeners started on our socket connection
+var connectionFuncs = function (player) {
+  console.log('new player connected:' + player.id);
+
+  player.on('disconnect', function () {
+    playerDisconnect(this);
+  });
+  player.on('new player', function (data){
+    newPlayer(data,this);
+  });
+  player.on('move player', function(data){
+
+    movePlayer(data,this);
+  });
+};
+
+
+
+var playerDisconnect = function(player) {
+  console.log('player disconnected:' + player.id);
+  var removedPlayer = findPlayer(player.id);
+
+  if (!removedPlayer) {
+    console.log('player not found, cannont disconnect:' + player.id);
+    return;
+  }
+
+  players.splice(players.indexOf(removedPlayer), 1);
+
+  //tell clients to remove this specific player
+  player.broadcast.emit('remove player', {id: player.id});
+
+};
+
+
+var newPlayer = function(data, player) {
+  console.log("newplayer server side function called");
+
+  //create a new player objext
+  var nPlayer = new Player(data.x, data.y, data.angle);
+
+  nPlayer.id = player.id;
+
+
+  //send this object to existing clients
+  player.broadcast.emit('newplayer', {
+    id: nPlayer.id,
+    x: nPlayer.getX(),
+    y: nPlayer.getY(),
+    angle: nPlayer.getAngle()
+
+  });
+
+
+  //inform newly created player of previous players
+  for (var i = 0; i < players.length; i ++) {
+    var oldPlayer = players[i];
+    player.emit('newplayer', {
+      id: oldPlayer.id,
+      x: oldPlayer.getX(),
+      y: oldPlayer.getY(),
+      angle: oldPlayer.getAngle()
+    });
+  }
+
+  //add to players array
+  players.push(nPlayer);
+  console.log(players);
+};
+
+var movePlayer = function (data, player) {
+  var movedPlayer = findPlayer(player.id);
+
+  if (!movedPlayer) {
+    console.log('player not found, cannot move' + player.id);
+    return;
+  }
+
+  movedPlayer.setX(data.x);
+  movedPlayer.setY(data.y);
+  movedPlayer.setAngle(data.angle);
+
+  player.broadcast.emit('moveplayer', {
+    id: movedPlayer.id,
+    x: movedPlayer.getX(),
+    y: movedPlayer.getY(),
+    angle: movedPlayer.getAngle()
+  });
+
+};
+
+
+//helper function to find player in our stored players array
+var findPlayer = function (id) {
+  for (var i = 0; i < players.length; i++) { 
+    if (players[i].id === id) {
+      return players[i];
+    }
+  }
+  return false;
+};
 
 http.listen(3000, '127.0.0.1');

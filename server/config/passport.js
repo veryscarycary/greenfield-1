@@ -3,8 +3,9 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 
 var configAuth = require('./auth');
 var User = require('../db/userModel');
+//var curUserID;
 
-module.exports = function(passport) {
+var fbPassport = function(passport) {
   passport.use(new FacebookStrategy({
     clientID: configAuth.facebookAuth.clientID,
     clientSecret: configAuth.facebookAuth.clientSecret,
@@ -14,6 +15,8 @@ module.exports = function(passport) {
     function(accessToken, refreshToken, profile, done) {
       //process.nextTick is used for async functions
       console.log("profile!!!!", profile);
+      // window.curUserID = profile.id;
+      //console.log("curUserID----->1", window.curUserID);
       process.nextTick(function() {
         User.findOne({'facebook.id': profile.id}, function(err, user) { 
           if (err) {
@@ -49,4 +52,10 @@ module.exports = function(passport) {
   passport.deserializeUser(function(user, done) {
     done(null, user);
   });
+  // console.log("curUserID----->2", window.curUserID);
 };
+
+// console.log("curUserID----->3", window.curUserID);
+// fbPassport.curUserID = curUserID;
+
+module.exports = fbPassport;

@@ -1,4 +1,4 @@
-var User = require('./User.model');
+var User = require('./userModel');
 
 ////// major work in progress below!!
 

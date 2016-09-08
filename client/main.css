@@ -1,3 +1,10 @@
+.welcome {
+	font-family: impact;
+}
+
+.highscore {
+	font-family: impact;
+
 body {
 	text-align: center;
 	font-family: Helvetica;

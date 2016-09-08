@@ -6,6 +6,7 @@ var User = require('./db/userModel');
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var passport = require('passport');
+var session = require('express-session');
 
 require('./config/passport')(passport);
 // var authRoutes = require('./db/authRoutes');
@@ -18,6 +19,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(session({
+  secret: 'keyboard cat'
+}));
 // app.use('/', authRoutes(app, passport));
 
 app.get('/', function(req, res) {
@@ -26,9 +30,28 @@ app.get('/', function(req, res) {
 
 app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email']}));
 
-app.get('/auth/facebook/callback',
-    passport.authenticate('facebook', { successRedirect: '../../main.html', //TODO: path on success
-                                        failureRedirect: '../../index.html' })); //TODO: path on failure
+app.get('/auth/facebook/callback', passport.authenticate('facebook', {failureRedirect: '../../index.html'}),
+  function(req, res) {
+    req.session.regenerate(function() {
+      req.session.user = req.user;
+      res.redirect('../../main.html');
+    });
+  }
+);
+
+app.get('/fetchProfile', function(req, res) {
+  // console.log("req inside server.js", req.user.displayName);
+  //console.log("fbPassport.curUserID: ", fbPassport.curUserID);
+  console.log("req.session.user--------->", req.session.user);
+  User.findOne({'facebook.id': req.session.user.facebook.id}, function(err, user) { //TODO: fix hardcoded id
+    if (err) {
+      res.status(500).send('error:', err);
+    } else {
+      res.json(user);
+    }
+  });
+});
+
 io.on('connection', function (socket) {
   connectionFuncs(socket);
 });

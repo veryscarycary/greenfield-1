@@ -11,13 +11,14 @@ var mongoose = require('mongoose');
 
 // FOR FACEBOOK AUTHENTICATION
 var userSchema = mongoose.Schema({
-  // local: {
-  //   username: {
-  //     type: String,
-  //     unique: true
-  //   },
-  //   password: String
-  // },
+  local: {
+    // username: {
+    //   type: String,
+    //   unique: true
+    // },
+    // password: String
+    highscore: Number
+  },
   facebook: {
     id: String,
     token: String,

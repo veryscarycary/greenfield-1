@@ -4,10 +4,11 @@
 
 .highscore {
 	font-family: impact;
+}
 
 body {
 	text-align: center;
-	font-family: Helvetica;
+	font-family: "Arial Black";
 	color: white;
 	background-color: black
 }

@@ -160,6 +160,7 @@ App.info = {
     App.info.players.splice(App.info.players.indexOf(removedPlayer), 1);
 
   },
+  
   findPlayer: function (id) {
     for (var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].player.name === id) {

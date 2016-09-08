@@ -25,7 +25,6 @@ App.stage2.prototype = {
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
     
     App.info.socketHandlers();
-    App.info.socket.emit('connect');
     
   },
 

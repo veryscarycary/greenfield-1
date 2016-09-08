@@ -1,3 +1,4 @@
+
 .welcome {
 	font-family: impact;
 }
@@ -11,6 +12,13 @@ body {
 	font-family: "Arial Black";
 	color: white;
 	background-color: black
+}
+.welcome {
+	font-family: impact;
+}
+
+.highscore {
+	font-family: impact;
 }
 
 a {

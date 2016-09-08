@@ -100,7 +100,7 @@ var newPlayer = function(data, player) {
   }
 
   //add to players array
-  players.push(nPlayer);
+  players.push(nPlayer); 
   console.log(players);
 };
 

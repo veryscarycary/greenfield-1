@@ -52,6 +52,13 @@ app.get('/fetchProfile', function(req, res) {
   });
 });
 
+app.get('/signout', function(req, res) {
+  req.session.destroy(function(err) {
+    console.log('error: ', err);
+  });
+  res.sendStatus(200);
+});
+
 io.on('connection', function (socket) {
   connectionFuncs(socket);
 });

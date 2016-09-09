@@ -25,4 +25,19 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
     .otherwise({
       redirectTo: '/profile'
     });
+})
+.controller('appCtrl', function($scope, $http, $location) {
+  $scope.signout = function() {
+    $http({
+      method: 'GET',
+      url: '/signout'
+    }).then(function(res) {
+      $http({
+        method: 'GET',
+        url: '/'
+      });
+    }, function(err) {
+      console.log('error: ', err);
+    });
+  };
 });

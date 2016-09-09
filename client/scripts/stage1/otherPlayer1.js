@@ -5,7 +5,7 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   var y = startY;
   var angle = startAngle;
 
-  //you can chane the health if you wish, the rest keep the same
+  //you can change the health if you wish, the rest keep the same
   this.game = game;
   this.health = 3;
   this.player = player;

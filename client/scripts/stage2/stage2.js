@@ -34,7 +34,7 @@ App.stage2.prototype = {
 
   update: function() {
 
-    //this function updates each player each frame
+    //this function updates each player each frame- KEEP!!!
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
@@ -64,8 +64,8 @@ App.stage2.prototype = {
       scoreText.text = 'Score:' + App.info.score;
     }
 
-    
-    //tells the server your location each frame
+
+    //tells the server your location each frame- KEEP!!!
     App.info.socket.emit('move player', {
       x: player.x,
       y: player.y,

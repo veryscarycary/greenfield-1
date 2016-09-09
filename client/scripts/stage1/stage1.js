@@ -84,13 +84,13 @@ App.stage1.prototype = {
       y: player.y,
       angle: player.angle
     });
-    // this.socketCheck(App.info.socket, this);
 
 
+
+<<<<<<< HEAD
   }
-
-  // socketCheck: function(socket, context) {
-
+}; 
+=======
   //   socket.on('makePlayer', function(counter) {
   //     console.log(this);
   //     counter = context.add.sprite(32, context.world.height - 150, 'dude');
@@ -102,6 +102,7 @@ App.stage1.prototype = {
   //   });
   
 }; // end of update fn
+>>>>>>> 5b798913c511c831192e69e5ce8bc6f8cb161af6
 
 App.info = { // this is the source of truth of info for each stage
   score: 0,
@@ -111,13 +112,28 @@ App.info = { // this is the source of truth of info for each stage
   socketHandlers: function () {
 
     App.info.socket.on('connect', function() {
-      console.log('connected123');
+<<<<<<< HEAD
+      console.log("connected123");
       App.info.socketConnect();
     });
-    App.info.socket.on('disconnect', function() { App.info.socketDisconnect(); });
-    App.info.socket.on('newplayer', function(data) { App.info.createPlayer(data); });
-    App.info.socket.on('moveplayer', function(data) { App.info.movePlayer(data); });
-    App.info.socket.on('remove player', function(data) { App.info.removePlayer(data); });
+    App.info.socket.on('disconnect', function() {App.info.socketDisconnect();});
+    App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
+    App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
+    App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
+    App.info.socket.on('stage', function() {
+      console.log('stage change called');
+      App.info.stageConnect();
+    });
+  
+  },
+
+  stageConnect: function() {
+    console.log('stage connect');
+    App.info.players.forEach(function (player) {
+      player.player.kill();
+    });
+    App.info.players = [];
+    App.info.socket.emit('repop', {x: player.x, y: player.y, angle: player.angle});
 
   },
   socketConnect: function() {
@@ -148,12 +164,13 @@ App.info = { // this is the source of truth of info for each stage
     if (duplicate) { // if player already found in players array, do not continue
       console.log('duplicate player');
       return;
-    }
+    } 
 
     // adds new player to array with (name, game object, player sprite object, x, y, angle)
     App.info.players.push( new RemotePlayer(data.id, App.info.game, player, data.x, data.y, data.angle));
     console.log('stored players', App.info.players);
   },
+
   movePlayer: function (data) {
 
     var movedPlayer = App.info.findPlayer(data.id);

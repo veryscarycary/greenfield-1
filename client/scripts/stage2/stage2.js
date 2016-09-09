@@ -24,8 +24,23 @@ App.stage2.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
     
+<<<<<<< HEAD
+    // App.info.socketHandlers();
+    // App.info.socket.emit('repop', {
+    //   x: player.x,
+    //   y: player.y,
+    //   angle: player.angle
+    // });
+
+    console.log('stage2 create1');
+    
+    App.info.stageConnect();
+    console.log('stage2 create2');
+    
+=======
     App.info.socketHandlers();
 
+>>>>>>> 5b798913c511c831192e69e5ce8bc6f8cb161af6
   },
 
   update: function() {

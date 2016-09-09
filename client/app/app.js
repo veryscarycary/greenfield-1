@@ -26,7 +26,14 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
       redirectTo: '/profile'
     });
 })
-.controller('appCtrl', function($scope, $http, $location) {
+.controller('appCtrl', function($scope, $http, $location, $route) {
+
+  $scope.$on( "$routeChangeStart", function(event, next, current) {
+    console.log('ROUTE CHANGE');
+    App.info.removePlayer(App.info.socket);
+    App.info.socket.disconnect();
+  });
+
   $scope.signout = function() {
     $http({
       method: 'GET',

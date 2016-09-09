@@ -41,12 +41,22 @@ nav {
 	margin: 0;
 }
 
+.view {
+	margin-top: 70px;
+}
+
 #game {
 	
+	top: 50px;
 	background-color: black;
-	margin-top: 40px;
-	margin-left: 10%;
-	margin-right: 10%;
+	padding: 5px;
+	height: 700px;
+}
+
+.game {
+
+	background-color: black;
+	height: 700px;
 	padding: 5px;
 }
 

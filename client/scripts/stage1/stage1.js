@@ -149,7 +149,7 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('connect', function() {
       App.info.socketConnect();
     });
-    App.info.socket.on('disconnect', function() {App.info.socketDisconnect();});
+    App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
     App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
@@ -189,6 +189,8 @@ App.info = { // this is the source of truth of info for each stage
     // simply hears when the user disconnects from the server
     // and logs that the player has disconnected
     console.log('disconnected from server');
+    App.info.socket.emit('disconnect');
+
   },
 
   //creates a player 

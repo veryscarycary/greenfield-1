@@ -6,7 +6,7 @@ App.stage2 = function(game) {
 App.stage2.prototype = {
   preload: function() {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
-    this.load.image('ground','/../../../assets/platform.png');
+    this.load.image('ground', '/../../../assets/platform.png');
   },
 
   create: function() {
@@ -24,6 +24,7 @@ App.stage2.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
     
+<<<<<<< HEAD
     // App.info.socketHandlers();
     // App.info.socket.emit('repop', {
     //   x: player.x,
@@ -36,6 +37,10 @@ App.stage2.prototype = {
     App.info.stageConnect();
     console.log('stage2 create2');
     
+=======
+    App.info.socketHandlers();
+
+>>>>>>> 5b798913c511c831192e69e5ce8bc6f8cb161af6
   },
 
   update: function() {
@@ -62,7 +67,7 @@ App.stage2.prototype = {
 
     }
     if (cursors.up.isDown) {
-      App.info.score +=10;
+      App.info.score += 10;
       scoreText.text = 'Score:' + App.info.score;
     }
     App.info.socket.emit('move player', {

@@ -28,9 +28,9 @@ var fbPassport = function(passport) {
             var newUser = new User({ //TODO: remember to require user as 'User'
               'facebook.id': profile.id,
               'facebook.token': accessToken,
-              // 'facebook.name': profile.name.givenName + ' ' + profile.name.familyName,
               'facebook.name': profile.displayName,
-              'facebook.email': profile.emails[0].value
+              'facebook.email': profile.emails[0].value,
+              'local.highscore': 0
             }); 
 
             newUser.save(function(err, data) {

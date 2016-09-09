@@ -13,6 +13,7 @@ App.stage1.prototype = {
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
+    this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
 
   },
 
@@ -31,29 +32,48 @@ App.stage1.prototype = {
     player.body.gravity.y = 300;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
-    scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
+
+    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '32px', fill: '#fff'});
+    var style = {fill: "white"};
+
+    //adds text to screen
     var text = "Waiting for new players!\nWhen all players are present,\n press SPACE to start!";
-    var style = { font:"pixel", fill: "white", align: "center" };
-    this.coolText = this.add.bitmapText(this.world.centerX-300, 30, "pixel", text, 30);
+    this.coolText = this.add.bitmapText(this.world.centerX-300, 120, "pixel", text, 30);
     this.coolText.align = 'center';
     this.coolText.tint = 0xff00ff;
+
+
     App.info.socketHandlers();
     App.info.socket.emit('connect'); // logs connected, clean slate for players,
                                      // and then adds self as a player to player list
 
     this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+    //creates coin
+    coin = this.add.sprite(400, 0, 'coin');
+    coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
+    this.physics.arcade.enable(coin);
+    coin.body.gravity.y = 300;
+    coin.animations.play('bling');
+
     
 
   },
 
   update: function() {
 
+    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    scoreText.text = updatedScore;
     // for each of the connected players, run each player's update fn
     // and set collision between all players
     for ( var i = 0; i < App.info.players.length; i++ ) {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.collide(App.info.players[i].player, coin, function(){
+          coin.kill();
+        });
       }
     }
 
@@ -62,6 +82,14 @@ App.stage1.prototype = {
     player.body.velocity.x = 0;
     this.physics.arcade.collide(player, platforms);
 
+
+    //coin conditions
+    this.physics.arcade.collide(coin, platforms);
+    this.physics.arcade.collide(player, coin, function() {
+      coin.kill();
+      App.info.gold += 1;
+      
+    });
     
 
     if (cursors.left.isDown) {
@@ -85,7 +113,7 @@ App.stage1.prototype = {
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
       player.body.velocity.y = -300;
-      scoreText.text = 'Score:' + App.info.score;
+ 
       
     }
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
@@ -110,7 +138,7 @@ App.stage1.prototype = {
 
 App.info = { // this is the source of truth of info for each stage
   score: 0,
-  life: 100,
+  health: 100,
   gold: 0,
   players: [],
   socket: io.connect('http://localhost:3000'), // sets this player's socket

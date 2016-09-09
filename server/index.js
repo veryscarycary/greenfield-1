@@ -99,7 +99,7 @@ var playerDisconnect = function(player) {
 
   //tell clients to remove this specific player
   player.broadcast.emit('remove player', {id: player.id});
-
+  console.log('players>> ', players);
 };
 
 
@@ -149,6 +149,11 @@ var newPlayer = function(data, player) {
   //create a new player objext
   var nPlayer = new Player(data.x, data.y, data.angle);
 
+  if(findPlayer(player.id)){
+    console.log('player already stored in server!')
+    return;
+  }
+  
   nPlayer.id = player.id;
 
 
@@ -174,6 +179,7 @@ var newPlayer = function(data, player) {
   }
 
   //add to players array
+
   players.push(nPlayer); 
   console.log('serverside players',players);
 };

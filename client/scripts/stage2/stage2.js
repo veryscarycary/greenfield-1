@@ -24,26 +24,17 @@ App.stage2.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
     
-<<<<<<< HEAD
-    // App.info.socketHandlers();
-    // App.info.socket.emit('repop', {
-    //   x: player.x,
-    //   y: player.y,
-    //   angle: player.angle
-    // });
 
-    console.log('stage2 create1');
-    
+    //this is important to bring in your players!!
     App.info.stageConnect();
-    console.log('stage2 create2');
-    
-=======
-    App.info.socketHandlers();
 
->>>>>>> 5b798913c511c831192e69e5ce8bc6f8cb161af6
+    
+
   },
 
   update: function() {
+
+    //this function updates each player each frame
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
@@ -51,6 +42,8 @@ App.stage2.prototype = {
       }
     }
 
+
+    //controls
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
     this.physics.arcade.collide(player, platforms);
@@ -70,6 +63,9 @@ App.stage2.prototype = {
       App.info.score += 10;
       scoreText.text = 'Score:' + App.info.score;
     }
+
+    
+    //tells the server your location each frame
     App.info.socket.emit('move player', {
       x: player.x,
       y: player.y,

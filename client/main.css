@@ -26,6 +26,10 @@ a {
 	padding-left: 50px;
 	padding-right: 50px;
 }
+@font-face {
+  font-family:Pixel Azure Bonds;
+  src: url(/../assets/paz.otf) format("opentype");
+}
 
 nav {
 	position: absolute;

@@ -87,33 +87,21 @@ App.stage1.prototype = {
 
 
 
-<<<<<<< HEAD
+
   }
 }; 
-=======
-  //   socket.on('makePlayer', function(counter) {
-  //     console.log(this);
-  //     counter = context.add.sprite(32, context.world.height - 150, 'dude');
-  //     context.physics.arcade.enable(counter);
-  //     context.physics.arcade.enable(counter);
-  //     counter.body.collideWorldBounds = true;
 
-  //     counter.body.gravity.y = 300;
-  //   });
-  
-}; // end of update fn
->>>>>>> 5b798913c511c831192e69e5ce8bc6f8cb161af6
 
 App.info = { // this is the source of truth of info for each stage
   score: 0,
   life: 0,
   players: [],
   socket: io.connect('http://localhost:3000'), // sets this player's socket
+  
+  //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {
 
     App.info.socket.on('connect', function() {
-<<<<<<< HEAD
-      console.log("connected123");
       App.info.socketConnect();
     });
     App.info.socket.on('disconnect', function() {App.info.socketDisconnect();});
@@ -121,12 +109,11 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
     App.info.socket.on('stage', function() {
-      console.log('stage change called');
       App.info.stageConnect();
     });
   
   },
-
+  //this function is called  when you connect to a new stage, it resets the players
   stageConnect: function() {
     console.log('stage connect');
     App.info.players.forEach(function (player) {
@@ -136,6 +123,8 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.emit('repop', {x: player.x, y: player.y, angle: player.angle});
 
   },
+
+  //this is fired on our initial connect-it starts a new game
   socketConnect: function() {
     console.log('connected to server');
     console.log('players array', App.info.players);
@@ -156,9 +145,10 @@ App.info = { // this is the source of truth of info for each stage
     // and logs that the player has disconnected
     console.log('disconnected from server');
   },
+
+  //creates a player 
   createPlayer: function (data) {
-    console.log('new player connected', data.id);
-    console.log('socket data', data);
+
     var duplicate = App.info.findPlayer(data.id);
 
     if (duplicate) { // if player already found in players array, do not continue
@@ -168,7 +158,7 @@ App.info = { // this is the source of truth of info for each stage
 
     // adds new player to array with (name, game object, player sprite object, x, y, angle)
     App.info.players.push( new RemotePlayer(data.id, App.info.game, player, data.x, data.y, data.angle));
-    console.log('stored players', App.info.players);
+
   },
 
   movePlayer: function (data) {

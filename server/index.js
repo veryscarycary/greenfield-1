@@ -71,9 +71,6 @@ var connectionFuncs = function (player) {
 
     movePlayer(data, this);
   });
-  player.on('check players', function () {
-    checkForPlayers(this);
-  });
   player.on('repop', function (data){
     repopPlayers(data,this);
   });
@@ -98,22 +95,12 @@ var playerDisconnect = function(player) {
 
 };
 
-var checkForPlayers = function (player) { 
-  for (var i = 0; i < players.length; i ++) {
-    var oldPlayer = players[i];
-    player.emit('newplayer', {
-      id: oldPlayer.id,
-      x: oldPlayer.getX(),
-      y: oldPlayer.getY(),
-      angle: oldPlayer.getAngle()
-    });
-  }
-  console.log('checking for old players');
 
-};
-
+//a function used when changing stages-similair to new player
 var repopPlayers = function(data, player){
   console.log("repopPlayers server side function called");
+
+  //
   var pastSelf = findPlayer(player.id);
   players.splice(players.indexOf(pastSelf), 1);
 

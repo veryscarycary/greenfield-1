@@ -11,10 +11,14 @@ App.stage1.prototype = {
   preload: function() {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
+    this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
+    this.load.image('background', '/../../../assets/space.png');
+
   },
 
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
+    this.add.tileSprite(0, 0, 800, 600, 'background');
     platforms = this.add.group();
     platforms.enableBody = true;
     var ground = platforms.create(0, this.world.height - 64, 'ground');
@@ -28,11 +32,16 @@ App.stage1.prototype = {
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-
+    var text = "Waiting for new players!\nWhen all players are present,\n press SPACE to start!";
+    var style = { font:"pixel", fill: "white", align: "center" };
+    this.coolText = this.add.bitmapText(this.world.centerX-300, 30, "pixel", text, 30);
+    this.coolText.align = 'center';
+    this.coolText.tint = 0xff00ff;
     App.info.socketHandlers();
     App.info.socket.emit('connect'); // logs connected, clean slate for players,
                                      // and then adds self as a player to player list
 
+    this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     
 
   },
@@ -73,12 +82,17 @@ App.stage1.prototype = {
       this.state.start('stage2');
       console.log('start stage 2');
     }
-    if (cursors.up.isDown) {
+    if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
+      player.body.velocity.y = -300;
       scoreText.text = 'Score:' + App.info.score;
-      console.log(this);
+      
     }
-
+    this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
+    
+    if (this.key1.isDown) {
+      this.state.start('stage2'); 
+    }
     // every frame, each player will emit their x,y,angle to every player
     // including self
     App.info.socket.emit('move player', {

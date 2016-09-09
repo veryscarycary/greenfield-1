@@ -67,11 +67,18 @@ var connectionFuncs = function (player) {
   player.on('new player', function (data){
     newPlayer(data,this);
   });
-  player.on('move player', function(data){
+  player.on('move player', function(data) {
 
-    movePlayer(data,this);
+    movePlayer(data, this);
+  });
+  player.on('check players', function () {
+    checkForPlayers(this);
+  });
+  player.on('repop', function (data){
+    repopPlayers(data,this);
   });
 };
+
 
 
 
@@ -89,6 +96,56 @@ var playerDisconnect = function(player) {
   //tell clients to remove this specific player
   player.broadcast.emit('remove player', {id: player.id});
 
+};
+
+var checkForPlayers = function (player) { 
+  for (var i = 0; i < players.length; i ++) {
+    var oldPlayer = players[i];
+    player.emit('newplayer', {
+      id: oldPlayer.id,
+      x: oldPlayer.getX(),
+      y: oldPlayer.getY(),
+      angle: oldPlayer.getAngle()
+    });
+  }
+  console.log('checking for old players');
+
+};
+
+var repopPlayers = function(data, player){
+  console.log("repopPlayers server side function called");
+  var pastSelf = findPlayer(player.id);
+  players.splice(players.indexOf(pastSelf), 1);
+
+  //create a new player objext
+  var nPlayer = new Player(data.x, data.y, data.angle);
+
+  nPlayer.id = player.id;
+
+
+  //send this object to existing clients
+  player.broadcast.emit('newplayer', {
+    id: nPlayer.id,
+    x: nPlayer.getX(),
+    y: nPlayer.getY(),
+    angle: nPlayer.getAngle()
+
+  });
+  console.log("server side players array",players);
+  //inform newly created player of previous players
+  for (var i = 0; i < players.length; i ++) {
+    var oldPlayer = players[i];
+    player.emit('newplayer', {
+      id: oldPlayer.id,
+      x: oldPlayer.getX(),
+      y: oldPlayer.getY(),
+      angle: oldPlayer.getAngle()
+    });
+  }
+
+  // //add to players array
+  players.push(nPlayer); 
+  console.log('serverside players',players);
 };
 
 
@@ -124,7 +181,7 @@ var newPlayer = function(data, player) {
 
   //add to players array
   players.push(nPlayer); 
-  console.log(players);
+  console.log('serverside players',players);
 };
 
 var movePlayer = function (data, player) {

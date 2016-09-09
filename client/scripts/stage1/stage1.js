@@ -76,23 +76,10 @@ App.stage1.prototype = {
       y: player.y,
       angle: player.angle
     });
-    // this.socketCheck(App.info.socket, this);
+
 
 
   }
-
-  // socketCheck: function(socket, context) {
-
-  //   socket.on('makePlayer', function(counter) {
-  //     console.log(this);
-  //     counter = context.add.sprite(32, context.world.height - 150, 'dude');
-  //     context.physics.arcade.enable(counter);
-  //     context.physics.arcade.enable(counter);
-  //     counter.body.collideWorldBounds = true;
-
-  //     counter.body.gravity.y = 300;
-  //   });
-  
 }; 
 
 App.info = {
@@ -104,11 +91,26 @@ App.info = {
 
     App.info.socket.on('connect', function() {
       console.log("connected123");
-      App.info.socketConnect();});
+      App.info.socketConnect();
+    });
     App.info.socket.on('disconnect', function() {App.info.socketDisconnect();});
     App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
+    App.info.socket.on('stage', function() {
+      console.log('stage change called');
+      App.info.stageConnect();
+    });
+  
+  },
+
+  stageConnect: function() {
+    console.log('stage connect');
+    App.info.players.forEach(function (player) {
+      player.player.kill();
+    });
+    App.info.players = [];
+    App.info.socket.emit('repop', {x: player.x, y: player.y, angle: player.angle});
 
   },
   socketConnect: function() {
@@ -134,11 +136,12 @@ App.info = {
     if (duplicate) {
       console.log("duplicate player");
       return;
-    }
+    } 
 
     App.info.players.push( new RemotePlayer(data.id, App.info.game, player, data.x, data.y, data.angle));
     console.log("stored players",App.info.players);
   },
+
   movePlayer: function (data) {
 
     var movedPlayer = App.info.findPlayer(data.id);

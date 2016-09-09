@@ -68,6 +68,8 @@ App.stage1.prototype = {
     }
 
     if (cursors.down.isDown) {
+
+      //this line starts stage 2 -- important!
       this.state.start('stage2');
       console.log('start stage 2');
     }
@@ -94,7 +96,8 @@ App.stage1.prototype = {
 
 App.info = { // this is the source of truth of info for each stage
   score: 0,
-  life: 0,
+  life: 100,
+  gold: 0,
   players: [],
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   

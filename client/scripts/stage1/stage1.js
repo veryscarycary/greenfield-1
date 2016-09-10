@@ -107,8 +107,8 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage5');
-      console.log('start stage 5');
+      this.state.start('stage2');
+      console.log('start stage 2');
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;

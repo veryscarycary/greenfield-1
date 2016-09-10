@@ -181,7 +181,7 @@ var newPlayer = function(data, player) {
   //add to players array
 
   players.push(nPlayer); 
-  console.log('serverside players',players);
+  console.log('serverside players', players);
 };
 
 var movePlayer = function (data, player) {

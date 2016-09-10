@@ -13,7 +13,7 @@ App.stage1.prototype = {
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
-    this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
+    this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
 
   },
 
@@ -107,8 +107,8 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage2');
-      console.log('start stage 2');
+      this.state.start('stage3');
+      console.log('start stage 3');
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
@@ -141,6 +141,7 @@ App.info = { // this is the source of truth of info for each stage
   health: 100,
   gold: 0,
   players: [],
+  timer: 8, // seconds (stage3)
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on
@@ -149,10 +150,10 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('connect', function() {
       App.info.socketConnect();
     });
-    App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
-    App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
-    App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
-    App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
+    App.info.socket.on('disconnected', function() { App.info.socketDisconnect(); });
+    App.info.socket.on('newplayer', function(data) { App.info.createPlayer(data); });
+    App.info.socket.on('moveplayer', function(data) { App.info.movePlayer(data); });
+    App.info.socket.on('remove player', function(data) { App.info.removePlayer(data); });
     App.info.socket.on('stage', function() {
       App.info.stageConnect();
     });

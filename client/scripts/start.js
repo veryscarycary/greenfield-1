@@ -5,6 +5,8 @@
 
   game.state.add("stage2", App.stage2);
 
+  game.state.add("stage3", App.stage3);
+
   game.state.start("stage1");
 
 

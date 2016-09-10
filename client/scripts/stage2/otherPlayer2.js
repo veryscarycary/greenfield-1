@@ -38,4 +38,4 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.angle = this.player.angle;
 };
 
-window.RemotePlayer;
+window.RemotePlayer; 

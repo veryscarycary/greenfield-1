@@ -107,8 +107,8 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage2');
-      console.log('start stage 2');
+      this.state.start('stage5');
+      console.log('start stage 5');
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
@@ -119,7 +119,7 @@ App.stage1.prototype = {
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
     
     if (this.key1.isDown) {
-      this.state.start('stage2'); 
+      this.state.start('stage5'); 
     }
     // every frame, each player will emit their x,y,angle to every player
     // including self

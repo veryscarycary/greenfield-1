@@ -1,5 +1,5 @@
 App.stage2 = function(game) {
-  console.log("starting stage2");
+  console.log('starting stage2');
   App.info.game = game;
 };
 
@@ -13,12 +13,17 @@ App.stage2.prototype = {
     this.load.image('ledge', '/../../../assets/ledge.png');
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
     this.load.spritesheet('raptorR', '/../../../assets/raptorR.png', 152.3, 93);
+    this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
+    this.load.spritesheet('mayor', '/../../../assets/portraits2.png', 210, 150);
+    this.load.spritesheet('trex', '/../../../assets/trex.png', 222, 145);
+    this.load.spritesheet('door', '/../../../assets/door.png', 64, 64);
   },
 
   create: function() {
     //gameworld
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.world.setBounds(0, 0, 4000, 600);
+    this.physics.arcade.OVERLAP_BIAS = 10;
 
     //backdrop
     var mountains = this.add.tileSprite(0, 0, 960, 144, 'mountains');
@@ -27,7 +32,7 @@ App.stage2.prototype = {
     //platforms
     platforms = this.add.group();
     platforms.enableBody = true;
-    var ground = platforms.create(0, this.world.height - 32, 'ground');
+    ground = platforms.create(0, this.world.height - 32, 'ground');
     ground.width = 4000;
     ground.body.immovable = true;
 
@@ -84,20 +89,23 @@ App.stage2.prototype = {
     ledge14.width = 200;
 
     //player
-    player = this.add.sprite(100, this.world.height - 200, 'robocop');
-    player.scale.setTo(2, 2);
+    player = this.add.sprite(325, 0, 'robocop');
+    player.scale.setTo(1.75, 1.75);
     this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     player.body.gravity.y = 800;
     player.animations.add('right', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
     this.camera.follow(player);
+    player.anchor.set(0.5);
+
 
      //box
-    box = this.add.sprite(100, 0, 'box');
+    box = this.add.sprite(130, 0, 'box');
     box.scale.setTo(2, 2);
     this.physics.arcade.enable(box);
     box.body.collideWorldBounds = true;
     box.body.gravity.y = 300;
+    box.body.mass = 5000;
 
     //creates coins
     coins = this.add.group();
@@ -112,7 +120,7 @@ App.stage2.prototype = {
     //creates raptors
     raptors = this.add.group();
     raptors.enableBody = true;
-    for (var i = 0; i < 10 ; i ++) {
+    for (var i = 0; i < 10; i ++) {
       var raptor = raptors.create ( i * 400, 400, 'raptorR');
       raptor.animations.add('raptorRight', [0, 1, 2, 3, 4, 5], 10, true);
       raptor.animations.play('raptorRight');
@@ -126,11 +134,59 @@ App.stage2.prototype = {
       }, this);
     }
 
+    //creates trexes
+    trexes = this.add.group();
+    trexes.enableBody = true;
+    for (var i = 0; i < 4; i ++) {
+      var trex = trexes.create ( i * 1000, 0, 'trex');
+      trex.animations.add('trexRight', [0, 1, 2, 3], 10, true);
+      trex.animations.play('trexRight');
+      trex.scale.setTo(-2, 2);
+      trex.body.gravity.y = 300;
+      trex.body.velocity.x = -75;
+      trex.checkWorldBounds = true;
+
+      trex.events.onOutOfBounds.add(function (trex){
+        trex.reset(3800, 0);
+        trex.body.velocity.x = -75;
+      }, this);
+
+    }
+
     //scoreboard
-    scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
+    scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '25px', fill: '#fff'});
     scoreText.fixedToCamera = true;
 
+    //intro text and image
+    text = "Robert Cop, you and your friends \n better get out there\n and clean up this jungle! \n It's teeming with dinosaurs! \n Love, \n -the mayor";
+    intro = this.add.bitmapText(150, 10, "pixel", text, 25);
+    intro.align = 'center';
+    intro.tint = 0x000000;
+
+    headshot = this.add.sprite(80, 140, 'mayor');
+    headshot.animations.add('still', [4]);
+    headshot.animations.play('still');
+
+    //intro text timer
+    this.time.events.add(Phaser.Timer.SECOND * 8, function () {
+      this.add.tween(intro).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+      this.add.tween(headshot).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+    }, this);
+
+    //door
+    door = this.add.sprite(3800, 100, 'door');
+    door.enableBody = true;
+    door.animations.add('closed', [0]);
+    door.animations.play('closed');
+    this.physics.arcade.enable(door);
+
+    door.body.gravity.y = 100;
+
+    door.scale.setTo(2.5, 2.5);
+
+
     //this is important to bring in your players!!
+    App.info.socketHandlers();
     App.info.stageConnect();
 
     
@@ -141,16 +197,28 @@ App.stage2.prototype = {
     var context = this;
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
+    playersTouching = false;
+    playerTouching = false;
     //this function updates each player each frame- KEEP!!!
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.collide(platforms, App.info.players[i].player);
+        this.physics.arcade.overlap(App.info.players[i].player, coins, function(player, coin) {
+          coin.kill();
+        }, null, this);
+        this.physics.arcade.collide(App.info.players[i].player, box);
+        this.physics.arcade.overlap(App.info.players[i].player,door, function(){
+          playersTouching = true;
+        });
       }
     }
 
     //player collisions
     player.body.velocity.x = 0;
+    this.physics.arcade.collide(door, platforms);
+    this.physics.arcade.collide(trexes, ground);
     this.physics.arcade.collide(raptors, platforms);
     this.physics.arcade.collide(coins, platforms);
     this.physics.arcade.collide(player, platforms);
@@ -165,7 +233,17 @@ App.stage2.prototype = {
       App.info.health -= .1;
     }, null, this);
 
-    this.physics.arcade.collide(raptors, this.world.bounds)
+    this.physics.arcade.overlap(player, trexes, function (player, trex){
+      App.info.health -= .2;
+    }, null, this);
+
+    this.physics.arcade.overlap(player, door, function() {
+      playerTouching = true;
+    });
+
+    if (playersTouching && playerTouching) {
+      this.state.start('stage3');
+    }
 
 
 
@@ -176,10 +254,12 @@ App.stage2.prototype = {
 
     if (cursors.left.isDown) {
       player.body.velocity.x = -150;
-      player.animations.play('left');
+      player.animations.play('right');
+      player.scale.setTo(-1.75, 1.75);
     } else if (cursors.right.isDown) {
       player.body.velocity.x = 150;
       player.animations.play('right');
+      player.scale.setTo(1.75, 1.75);
     } else {
       player.animations.stop();
       player.frame = 4;

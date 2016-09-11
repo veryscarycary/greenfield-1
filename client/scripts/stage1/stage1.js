@@ -21,6 +21,9 @@ App.stage1.prototype = {
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.add.tileSprite(0, 0, 800, 600, 'background');
+    this.physics.arcade.OVERLAP_BIAS = 10;
+
+
     platforms = this.add.group();
     platforms.enableBody = true;
     var ground = platforms.create(0, this.world.height - 64, 'ground');
@@ -45,7 +48,7 @@ App.stage1.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
 
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
-    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '32px', fill: '#fff'});
+    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '25px', fill: '#fff'});
     var style = {fill: "white"};
 
     //adds text to screen
@@ -236,7 +239,7 @@ App.info = { // this is the source of truth of info for each stage
     var movedPlayer = App.info.findPlayer(data.id);
 
     if (!movedPlayer) { // if player is not in players array, don't continue
-      console.log('player not found', data.id);
+      console.log('player not found for move', data.id);
       return;
     }
 
@@ -251,7 +254,7 @@ App.info = { // this is the source of truth of info for each stage
     var removedPlayer = App.info.findPlayer(data.id);
 
     if (!removedPlayer) { // if player is not in players array, don't continue
-      console.log( 'player not found', data.id);
+      console.log( 'player not found for removal', data.id);
       return;
     }
 

@@ -40,10 +40,14 @@ RemotePlayer.prototype.update = function () {
   //these update behaviors are called on your players.
   //they are here to define the animations of your co-players
   if (this.player.x > this.lastPosition.x) {
-    this.player.play('left');
-    
-  } else {
     this.player.play('right');
+    
+  } else if (this.player.x < this.lastPosition.x){
+
+    this.player.play('left');
+  } else {
+    this.player.animations.stop();
+    this.player.frame = 4;
   }
 
   this.lastPosition.x = this.player.x;

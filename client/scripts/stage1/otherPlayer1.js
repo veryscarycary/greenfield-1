@@ -29,6 +29,8 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   this.player.body.immovable = false;
   this.player.body.collideWorldBounds = true;
 
+  //messing with tint
+  this.player.tint = 0xff00ff;
   this.player.angle = null;
 
   this.lastPosition = { x: x, y: y, angle: angle };

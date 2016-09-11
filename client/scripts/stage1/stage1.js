@@ -107,8 +107,8 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage2');
-      console.log('start stage 2');
+      this.state.start('stage5');
+      console.log('start stage 5');
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
@@ -152,6 +152,7 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
     App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
+    App.info.socket.on('movep2player', function(data){App.info.moveP2Player(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
     App.info.socket.on('stage', function() {
       App.info.stageConnect();
@@ -210,6 +211,7 @@ App.info = { // this is the source of truth of info for each stage
 
   movePlayer: function (data) {
 
+
     var movedPlayer = App.info.findPlayer(data.id);
 
     if (!movedPlayer) { // if player is not in players array, don't continue
@@ -222,8 +224,29 @@ App.info = { // this is the source of truth of info for each stage
     movedPlayer.player.x = data.x;
     movedPlayer.player.y = data.y; 
     movedPlayer.player.angle = data.angle;
+    movedPlayer.player.body.reset(data.x, data.y);
 
   },
+
+
+  moveP2Player: function (data) {
+
+
+    var movedPlayer = App.info.findPlayer(data.id);
+
+    if (!movedPlayer) { // if player is not in players array, don't continue
+      console.log('player not found', data.id);
+      return;
+    }
+
+    // every time a player moves, the x,y,angle are set on that player object
+    // including self
+ 
+    movedPlayer.player.angle = data.angle;
+    movedPlayer.player.body.reset(data.x, data.y);
+
+  },
+
   removePlayer: function (data) {
     var removedPlayer = App.info.findPlayer(data.id);
 

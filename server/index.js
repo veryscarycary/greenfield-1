@@ -81,6 +81,9 @@ var connectionFuncs = function (player) {
   player.on('repop', function (data){
     repopPlayers(data,this);
   });
+  player.on('p2player', function(data){
+    moveP2Player(data, this);
+  });
 };
 
 
@@ -197,6 +200,27 @@ var movePlayer = function (data, player) {
   movedPlayer.setAngle(data.angle);
 
   player.broadcast.emit('moveplayer', {
+    id: movedPlayer.id,
+    x: movedPlayer.getX(),
+    y: movedPlayer.getY(),
+    angle: movedPlayer.getAngle()
+  });
+
+};
+
+var moveP2Player = function (data, player) {
+  var movedPlayer = findPlayer(player.id);
+
+  if (!movedPlayer) {
+    console.log('player not found, cannot move' + player.id);
+    return;
+  }
+
+  movedPlayer.setX(data.x);
+  movedPlayer.setY(data.y);
+  movedPlayer.setAngle(data.angle);
+
+  player.broadcast.emit('movep2player', {
     id: movedPlayer.id,
     x: movedPlayer.getX(),
     y: movedPlayer.getY(),

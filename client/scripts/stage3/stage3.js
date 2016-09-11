@@ -151,14 +151,14 @@ App.stage3.prototype = {
       }
     }, 1000);
 
-    setInterval(function () {
-      if (App.info.attackSprites.length) {
-        App.info.attackSprites.forEach(function(sprite) {
-          console.log(App.info.attackSprites);
-          sprite.kill();
-        });
-      }
-    }, 50); 
+    // setInterval(function () {
+    //   if (App.info.attackSprites.length) {
+    //     App.info.attackSprites.forEach(function(sprite) {
+    //       console.log(App.info.attackSprites);
+    //       sprite.kill();
+    //     });
+    //   }
+    // }, 50); 
     
 
     //this is important to bring in your players!!

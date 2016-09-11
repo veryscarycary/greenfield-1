@@ -142,8 +142,6 @@ App.info = { // this is the source of truth of info for each stage
   gold: 0,
   players: [],
   timer: 60, // seconds (stage3)
-  hasSword: false,
-  attackSprites: [],
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on

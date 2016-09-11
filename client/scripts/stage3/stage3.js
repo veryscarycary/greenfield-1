@@ -5,7 +5,64 @@ App.stage3 = function(game) {
 
 var land;
 
+var Arrow = function (game, key) {
+  Phaser.Sprite.call(this, game, 0, 0, key);
+  this.texture.baseTexture.scaleMode = PIXI.scaleModes.NEAREST;
+  this.anchor.set(0.5);
+  this.checkWorldBounds = true;
+  this.outOfBoundsKill = true;
+  this.exists = false;
+  this.tracking = false;
+  this.scaleSpeed = 0;
+};
+Arrow.prototype = Object.create(Phaser.Sprite.prototype);
+Arrow.prototype.constructor = Arrow;
+Arrow.prototype.fire = function (x, y, angle, speed, gx, gy) {
+  gx = gx || 0;
+  gy = gy || 0;
+  this.reset(x, y);
+  this.scale.set(1);
+  this.game.physics.arcade.velocityFromAngle(angle, speed, this.body.velocity);
+  this.angle = angle;
+  this.body.gravity.set(gx, gy);
+};
+Arrow.prototype.update = function () {
+  if (this.tracking) {
+    this.rotation = Math.atan2(this.body.velocity.y, this.body.velocity.x);
+  }
+  if (this.scaleSpeed > 0) {
+    this.scale.x += this.scaleSpeed;
+    this.scale.y += this.scaleSpeed;
+  }
+};
+
+var Weapon = {};
+////////////////////////////////////////////////////
+//  A single arrow is fired in front of the ship //
+////////////////////////////////////////////////////
+Weapon.SingleArrow = function (game) {
+  Phaser.Group.call(this, game, game.world, 'Single Arrow', false, true, Phaser.Physics.ARCADE);
+  this.nextFire = 0;
+  this.arrowSpeed = 600;
+  this.fireRate = 100;
+
+  for (var i = 0; i < 64; i++) {
+    this.add(new Arrow(game, 'arrow'), true);
+  }
+  return this;
+};
+Weapon.SingleArrow.prototype = Object.create(Phaser.Group.prototype);
+Weapon.SingleArrow.prototype.constructor = Weapon.SingleArrow;
+Weapon.SingleArrow.prototype.fire = function (source, angle) {
+  if (this.game.time.time < this.nextFire) { return; }
+  var x = source.x + 10;
+  var y = source.y + 10;
+  this.getFirstExists(false).fire(x, y, angle, this.arrowSpeed, 0, 0);
+  this.nextFire = this.game.time.time + this.fireRate;
+};
+
 App.stage3.prototype = {
+  weapons: [],
   preload: function() {
     this.load.image('scorchedEarth', '/../../../assets/caryAssets/scorched_earth.png');
     this.load.image('lavaleft1', '/../../../assets/caryAssets/lavaleft1.png');
@@ -20,8 +77,11 @@ App.stage3.prototype = {
     this.load.image('lavabottom1', '/../../../assets/caryAssets/lavabottom1.png');
     this.load.image('lavabottom2', '/../../../assets/caryAssets/lavabottom2.png');
     this.load.image('lavabottom3', '/../../../assets/caryAssets/lavabottom3.png');
+    this.load.image('arrow', '/../../../assets/caryAssets/arrow.png');
 
     this.load.spritesheet('greenLink', '/../../../assets/caryAssets/greenLink.png', 76, 76);
+    this.load.spritesheet('greenLinkAttackRL', '/../../../assets/caryAssets/greenLinkAttackRL.png', 85, 76);
+    this.load.spritesheet('greenLinkAttackUD', '/../../../assets/caryAssets/greenLinkAttackUD.png', 76, 95);
     this.load.spritesheet('redLink', '/../../../assets/caryAssets/redLink.png', 76, 76);
     this.load.spritesheet('blueLink', '/../../../assets/caryAssets/blueLink.png', 76, 76);
     // this.load.image('ground', '/../../../assets/platform.png');
@@ -29,6 +89,8 @@ App.stage3.prototype = {
   },
 
   create: function() {
+
+
     let x = -500;
     let y = -500;
     let width = 1000;
@@ -39,6 +101,8 @@ App.stage3.prototype = {
     // Our tiled scrolling background
     land = this.add.tileSprite(0, 0, 800, 600, 'scorchedEarth');
     land.fixedToCamera = true;
+
+    this.weapons.push(new Weapon.SingleArrow(this.game));
 
 
     // this.physics.startSystem(Phaser.Physics.ARCADE);
@@ -74,6 +138,7 @@ App.stage3.prototype = {
     player.animations.add('up', [4, 5], 16, true);
     player.animations.add('left', [8, 9], 16, true);
     player.animations.add('down', [12, 13], 16, true);
+
     var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
     timerAndScoreText = this.add.text(16, 16, timerText + '\nscore: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
 
@@ -85,6 +150,15 @@ App.stage3.prototype = {
         clearInterval(timer);
       }
     }, 1000);
+
+    setInterval(function () {
+      if (App.info.attackSprites.length) {
+        App.info.attackSprites.forEach(function(sprite) {
+          console.log(App.info.attackSprites);
+          sprite.kill();
+        });
+      }
+    }, 50); 
     
 
     //this is important to bring in your players!!
@@ -99,7 +173,7 @@ App.stage3.prototype = {
     if ((App.info.timer % 60) < 10) {
       var seconds = '0' + (App.info.timer % 60);
     } else {
-      var seconds = (App.info.timer % 60)
+      var seconds = (App.info.timer % 60);
     }
     var updatedTimerAndScore = (Math.floor(App.info.timer / 60) + ':' + seconds);
     timerAndScoreText.text = updatedTimerAndScore + '\nscore: ' + App.info.score;
@@ -117,7 +191,21 @@ App.stage3.prototype = {
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
     player.body.velocity.y = 0;
+
+    var key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
     // this.physics.arcade.collide(player, platforms);
+    
+    if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.left.isDown) {
+      this.weapons[0].fire(player, 180);
+
+    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.right.isDown) {
+      this.weapons[0].fire(player, 0);
+    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.up.isDown) {
+      this.weapons[0].fire(player, 270);
+    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.down.isDown) {
+      this.weapons[0].fire(player, 90);
+    }
 
     if (cursors.left.isDown) {
       player.body.velocity.x = -150;

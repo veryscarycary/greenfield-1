@@ -110,16 +110,16 @@ App.stage1.prototype = {
       this.state.start('stage3');
       console.log('start stage 3');
     }
+
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
       player.body.velocity.y = -300;
- 
-      
     }
-    this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
-    
-    if (this.key1.isDown) {
-      this.state.start('stage5'); 
+
+    var key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+    if (key1.isDown) {
+      this.state.start('stage3'); 
     }
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -141,7 +141,9 @@ App.info = { // this is the source of truth of info for each stage
   health: 100,
   gold: 0,
   players: [],
-  timer: 8, // seconds (stage3)
+  timer: 60, // seconds (stage3)
+  hasSword: false,
+  attackSprites: [],
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on

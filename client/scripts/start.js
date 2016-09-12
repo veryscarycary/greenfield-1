@@ -7,6 +7,8 @@
   game.state.add("stage4", App.stage4);
   game.state.add("stage5", App.stage5);
 
+  game.state.add('store', App.store);
+
   game.state.start('stage1');
 
 })();

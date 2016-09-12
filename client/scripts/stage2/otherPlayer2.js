@@ -8,29 +8,38 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   this.player = player;
   this.alive = true;
 
-  this.player = game.add.sprite(x, y, 'dude');
+  this.player = game.add.sprite(x, y, 'robocop');
 
-  this.player.animations.add('left', [0, 1, 2, 3], 10, true);
-  this.player.animations.add('right', [5, 6, 7, 8], 10, true);
+  this.player.animations.add('right', [0, 1, 2, 3, 4, 5, 6 ,7], 10, true);
+  this.player.scale.setTo(1.75, 1.75);
 
   this.player.anchor.setTo(0.5, 0.5);
 
   this.player.name = index.toString();
+
   this.game.physics.enable(this.player, Phaser.Physics.ARCADE);
-  this.player.body.immovable = true;
+  this.player.body.gravity.y = 800;
+  this.player.body.immovable = false;
+
   this.player.body.collideWorldBounds = true;
 
-  this.player.angle = angle;
+  this.player.tint = 0x0000ff;
+  this.player.angle = null;
 
   this.lastPosition = { x: x, y: y, angle: angle };
 };
 
 RemotePlayer.prototype.update = function () {
-  if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y || this.player.angle !== this.lastPosition.angle) {
-    this.player.play('left');
-    this.player.rotation = Math.PI + this.game.physics.arcade.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y);
-  } else {
+  if (this.player.x > this.lastPosition.x) {
     this.player.play('right');
+    this.player.scale.setTo(1.75, 1.75);
+    
+  } else if (this.player.x < this.lastPosition.x) {
+
+    this.player.play('right');
+    this.player.scale.setTo(- 1.75, 1.75);
+  } else {
+    this.player.animations.stop();
   }
 
   this.lastPosition.x = this.player.x;
@@ -38,4 +47,4 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.angle = this.player.angle;
 };
 
-window.RemotePlayer; 
+window.RemotePlayer = RemotePlayer; 

@@ -59,7 +59,7 @@ App.store.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 30, function () {
-      this.state.start('stage1');
+      this.state.start(App.info.nextStage);
     }, this);
 
     timerText = ('Time left in store: ' + this.time.events.duration);
@@ -182,7 +182,7 @@ App.store.prototype = {
 
         this.physics.arcade.overlap(App.info.players[i].player, witchhat, function(player, witchhat) {
           witchhat.kill();
-          this.state.start('stage1');
+          this.state.start(App.info.nextStage);
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, turtleshell, function(player, turtleshell) {
@@ -259,7 +259,7 @@ App.store.prototype = {
 
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
       witchhat.kill();
-      this.state.start('stage1');
+      this.state.start(App.info.nextStage);
     }, null, this);
 
     this.physics.arcade.overlap(player, turtleshell, function(player, turtleshell) {

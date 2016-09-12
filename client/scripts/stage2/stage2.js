@@ -20,6 +20,9 @@ App.stage2.prototype = {
   },
 
   create: function() {
+    //next stage
+    App.info.nextStage = 'stage3';
+
     //gameworld
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.world.setBounds(0, 0, 4000, 600);
@@ -255,7 +258,9 @@ App.stage2.prototype = {
     });
 
     if (playersTouching && playerTouching) {
-      this.state.start('store');
+      setTimeout(function () {
+        context.state.start('store'); 
+      }, 1000);  
     }
 
 

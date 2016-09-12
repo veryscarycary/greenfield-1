@@ -73,14 +73,15 @@ var connectionFuncs = function (player) {
   player.on('disconnect', function () {
     playerDisconnect(this);
   });
-  player.on('new player', function (data) {
-    newPlayer(data, this);
+  player.on('new player', function (data){
+    newPlayer(data,this);
   });
   player.on('move player', function(data) {
+
     movePlayer(data, this);
   });
-  player.on('repop', function (data) {
-    repopPlayers(data, this);
+  player.on('repop', function (data){
+    repopPlayers(data,this);
   });
   player.on('p2player', function(data){
     moveP2Player(data, this);
@@ -88,36 +89,13 @@ var connectionFuncs = function (player) {
   player.on('startTimer', function () {
     startStage3Timer(this);
   });
-  player.on('shotsFired', function (data) {
-    reportShotsFired(data, this);
-  });
-};
-
-var reportShotsFired = function(data, player) {
-  var shootingPlayer = findPlayer(player.id);
-
-  if (!shootingPlayer) {
-    console.log('player not found, cannot move' + player.id);
-    return;
-  }
-
-  player.broadcast.emit('reportShotsFired', {
-    shooter: {
-      id: shootingPlayer.id,
-      x: shootingPlayer.getX(),
-      y: shootingPlayer.getY()
-    },
-    direction: data.direction
-  });
 };
 
 
 var startStage3Timer = function(player) {
   if (timerStarted) { return; }
-  timerStarted = true;
   var timer = setInterval(function () {
     stage3Timer--;
-    console.log('SERVERTIMER', stage3Timer);
     if (stage3Timer <= 0) {
       // start next stage, cancel timer and allow it to be started again
       io.sockets.emit('startNextStage');
@@ -127,6 +105,7 @@ var startStage3Timer = function(player) {
     // send timer to all clients
     io.sockets.emit('updateTimer', stage3Timer);
   }, 1000);
+  timerStarted = true;
 };
 
 var playerDisconnect = function(player) {
@@ -283,4 +262,4 @@ var findPlayer = function (id) {
   return false;
 };
 
-http.listen(process.env.PORT || 3000, '107.170.245.62');
+http.listen(process.env.PORT || 3000, '127.0.0.1');

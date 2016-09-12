@@ -14,6 +14,8 @@ App.stage5.prototype = {
   },
 
   create: function() {
+    //next stage
+    App.info.nextStage = 'stage2';
     
     // set game to P2 physics
     this.physics.startSystem(Phaser.Physics.P2JS);
@@ -79,6 +81,22 @@ App.stage5.prototype = {
       this.add.tween(intro).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
     }, this);
 
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
+
+    //timer
+    this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.state.start('store');
+      App.info.difficulty += 1;
+    }, this);
+
 
     //this is important to bring in your players!!
     App.info.stageConnect();
@@ -87,7 +105,7 @@ App.stage5.prototype = {
 
   hit: function(body1, body2) {
     App.info.score = App.info.score - 100;
-    App.info.health = App.info.health - 1;
+    App.info.health = App.info.health - 1 * App.info.difficulty;
     
     // create a new ghost if pacman hits a ghost
     ghost = this.add.sprite(this.world.randomX, this.world.randomX, 'ghost');
@@ -150,20 +168,30 @@ App.stage5.prototype = {
 
     }
     if (cursors.up.isDown) {
-      player.body.thrust(400);
+      player.body.thrust(400 * App.info.speed);
       App.info.score += 1;
 
       updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
       scoreText.text = updatedScore;
     } else if (cursors.down.isDown) {
-      player.body.reverse(400);
+      player.body.reverse(400 * App.info.speed);
       App.info.score += 1;
       updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
       scoreText.text = updatedScore;
 
     }
 
-
+    //death check
+    if (App.info.health <= 0) {
+      App.info.score = 0;
+      App.info.health = 100;
+      App.info.gold = 0;
+      App.info.color = 0xffffff;
+      App.info.speed = 1;
+      App.info.weight = 1;
+      App.info.snow = false;
+      App.info.jump = 1;
+    }
     //tells the server your location each frame- KEEP!!!
     App.info.socket.emit('p2player', {
       x: player.x,

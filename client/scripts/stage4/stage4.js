@@ -15,6 +15,9 @@ App.stage4.prototype = {
   },
 
   create: function() {
+    //next stage
+    App.info.nextStage = 'stage5';
+
     var height = 3000; //set world height here
     var time = 10;
 
@@ -175,6 +178,21 @@ App.stage4.prototype = {
 
     //ground.tint = 0x2C5800;
     ground.tint = 0xE6FFB7;
+
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
+
+    //timer
+    this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.state.start('store');
+    }, this);
 
     //this is important to bring in your players!!
     App.info.stageConnect();

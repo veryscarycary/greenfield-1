@@ -52,7 +52,7 @@ App.stage1.prototype = {
     var style = {fill: "white"};
 
     //adds text to screen
-    var text = "Waiting for new players!\nWhen all players are present,\n press SPACE to start!";
+    var text = "Waiting for new players!\nWhen all players are present,\n grab the coin to start!";
     this.coolText = this.add.bitmapText(this.world.centerX-300, 120, "pixel", text, 30);
     this.coolText.align = 'center';
     this.coolText.tint = 0xff00ff;
@@ -119,7 +119,7 @@ App.stage1.prototype = {
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player,box);
+    this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, function() {
       coin.kill();
       App.info.gold += 1;
@@ -145,8 +145,8 @@ App.stage1.prototype = {
       //this line starts stage 2 -- important!
 
 
-      this.state.start('store');
-      console.log('start stage 2');
+      // this.state.start('store');
+      // console.log('start stage 2');
 
 
     }
@@ -191,6 +191,7 @@ App.info = { // this is the source of truth of info for each stage
   snow: false,
   jump: 1,
   difficulty: 1,
+  nextStage: null,
 
  // sets this player's socket
   socket: io.connect('http://localhost:3000'), // sets this player's socket

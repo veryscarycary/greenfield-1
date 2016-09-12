@@ -99,6 +99,8 @@ App.stage3.prototype = {
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
 
+    App.info.nextStage = 'stage4';
+
 
     let x = -500;
     let y = -500;
@@ -145,6 +147,7 @@ App.stage3.prototype = {
 
     var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
     timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
+    timerAndScoreText.fixedToCamera= true;
 
     var style = {fill: "white"};
 
@@ -188,6 +191,17 @@ App.stage3.prototype = {
     smokes.forEach(setupSmoke, this);
 
     App.info.socket.emit('startTimer');
+
+
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
 
 
     //this is important to bring in your players!!
@@ -282,16 +296,16 @@ App.stage3.prototype = {
     }
 
     else if (cursors.left.isDown) {
-      player.body.velocity.x = -150;
+      player.body.velocity.x = -150 * App.info.speed;
       player.animations.play('left');
     } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150;
+      player.body.velocity.x = 150 * App.info.speed;
       player.animations.play('right');
     } else if (cursors.up.isDown) {
-      player.body.velocity.y = -150;
+      player.body.velocity.y = -150 * App.info.speed;
       player.animations.play('up');
     } else if (cursors.down.isDown) {
-      player.body.velocity.y = 150;
+      player.body.velocity.y = 150 * App.info.speed;
       player.animations.play('down');
     } else {
       player.animations.stop();
@@ -300,6 +314,18 @@ App.stage3.prototype = {
 
     land.tilePosition.x = -this.camera.x;
     land.tilePosition.y = -this.camera.y;
+
+    //death check
+    if (App.info.health <= 0) {
+      App.info.score = 0;
+      App.info.health = 100;
+      App.info.gold = 0;
+      App.info.color = 0xffffff;
+      App.info.speed = 1;
+      App.info.weight = 1;
+      App.info.snow = false;
+      App.info.jump = 1;
+    }
     
     //tells the server your location each frame
     App.info.socket.emit('move player', {
@@ -345,7 +371,7 @@ function fireArrow (direction, shooter) {
 
 
 function startNextStage (context) {
-  context.state.start('stage2');
+  context.state.start('store');
 }
 
 function resetArrow (arrow) {
@@ -358,7 +384,7 @@ function collisionHandlerPlayer (player, arrow) {
   arrow.kill();
 
   //  decrease the health
-  App.info.health -= 1;
+  App.info.health -= 1 * App.info.difficulty;
 
    // And create a smoke :)
   var smoke = smokes.getFirstExists(false);

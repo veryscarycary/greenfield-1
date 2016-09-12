@@ -144,9 +144,6 @@ App.stage1.prototype = {
 
       //this line starts stage 2 -- important!
 
-      // this.state.start('stage5');
-      // console.log('start stage 5');
-
       this.state.start('store');
       console.log('start stage 2');
 

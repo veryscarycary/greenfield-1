@@ -226,7 +226,8 @@ App.stage3.prototype = {
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, box);
 
-        this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandler, null, this);
+        this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandlerEnemy, null, this);
+        this.physics.arcade.overlap(arrows, player, collisionHandlerPlayer, null, this);
         App.info.players[i].player.anchor.x = 0.5;
         App.info.players[i].player.anchor.y = 0.5;
         App.info.players[i].player.animations.add('smoke');
@@ -240,7 +241,14 @@ App.stage3.prototype = {
       App.info.gold += 1;
     }, null, this);
 
+    App.info.socket.on('updateTimer', function(serverTimer) {
+      App.info.timer = serverTimer;
+    });
+    
     //////// ENEMY ARROWS
+    App.info.socket.on('reportShotsFired', function(data) {
+      fireArrow(data.direction, data.shooter);
+    });
 
 
     ///////// CONTROLS
@@ -254,15 +262,19 @@ App.stage3.prototype = {
     // this.physics.arcade.collide(player, platforms);
     
     if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.left.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'left'});
       player.animations.play('attackLeft');
       fireArrow('left');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.right.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'right'});
       player.animations.play('attackRight');
       fireArrow('right');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.up.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'up'});
       player.animations.play('attackUp');
       fireArrow('up');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.down.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'down'});
       player.animations.play('attackDown');
       fireArrow('down');
     }
@@ -296,9 +308,11 @@ App.stage3.prototype = {
   }
 };
 
-function fireArrow (direction) {
-    var fire = function (xORy, speed, spacingx, spacingy) {
-      arrow.reset(player.x + spacingx, player.y + spacingy);
+function fireArrow (direction, shooter) {
+    shooter = shooter || player;
+
+    var fire = function (xORy, speed, spacingx, spacingy, shooter) {
+      arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
       arrow.body.velocity[xORy] = speed;
       arrowTime = App.info.game.time.now + 200;
     };
@@ -311,29 +325,43 @@ function fireArrow (direction) {
 
         if (arrow && direction === 'up') {
             //  And fire it
-          fire('y', -400, 0, -12);
+          fire('y', -400, 0, -60, shooter);
         } else if (arrow && direction === 'down') {
-          fire('y', 400, 0, 12);
+          fire('y', 400, 0, 60, shooter);
         } else if (arrow && direction === 'left') {
-          fire('x', -400, -12, 0);
+          fire('x', -400, -60, 0, shooter);
         } else if (arrow && direction === 'right') {
-          fire('x', 400, 12, 0);
+          fire('x', 400, 60, 0, shooter);
         }
     }
 
-}
+};
 
 
 function startNextStage (context) {
   context.state.start('stage2');
-}
+};
 
 function resetArrow (arrow) {
     //  Called if the arrow goes out of the screen
     arrow.kill();
 };
 
-function collisionHandler (enemyPlayer, arrow) {
+function collisionHandlerPlayer (player, arrow) {
+
+    //  When an arrow hits another player, we kill the arrow
+    arrow.kill();
+
+    //  decrease the health
+    App.info.health -= 1;
+
+     // And create a smoke :)
+    var smoke = smokes.getFirstExists(false);
+    smoke.reset(player.body.x, player.body.y);
+    smoke.play('smoke', 30, false, true);
+};
+
+function collisionHandlerEnemy (enemyPlayer, arrow) {
 
     //  When an arrow hits another player, we kill the arrow
     arrow.kill();
@@ -345,4 +373,4 @@ function collisionHandler (enemyPlayer, arrow) {
     var smoke = smokes.getFirstExists(false);
     smoke.reset(enemyPlayer.body.x, enemyPlayer.body.y);
     smoke.play('smoke', 30, false, true);
-}
+};

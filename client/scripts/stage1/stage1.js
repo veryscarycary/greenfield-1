@@ -109,7 +109,7 @@ App.stage1.prototype = {
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player, box);
+    this.physics.arcade.collide(player,box);
     this.physics.arcade.collide(player, coin, function() {
       coin.kill();
       App.info.gold += 1;

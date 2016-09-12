@@ -85,7 +85,7 @@ var connectionFuncs = function (player) {
   player.on('startTimer', function () {
     startStage3Timer(this);
   });
-  player.on('shotsFired', function () {
+  player.on('shotsFired', function (data) {
     reportShotsFired(data, this);
   });
 };
@@ -111,6 +111,7 @@ var reportShotsFired = function(data, player) {
 
 var startStage3Timer = function(player) {
   if (timerStarted) { return; }
+  timerStarted = true;
   var timer = setInterval(function () {
     stage3Timer--;
     console.log('SERVERTIMER', stage3Timer);
@@ -123,7 +124,6 @@ var startStage3Timer = function(player) {
     // send timer to all clients
     io.sockets.emit('updateTimer', stage3Timer);
   }, 1000);
-  timerStarted = true;
 };
 
 var playerDisconnect = function(player) {

@@ -85,6 +85,10 @@ App.stage3.prototype = {
     this.load.spritesheet('greenLinkAttackUD', '/../../../assets/caryAssets/greenLinkAttackUD.png', 76, 95);
     this.load.spritesheet('redLink', '/../../../assets/caryAssets/redLink.png', 76, 76);
     this.load.spritesheet('blueLink', '/../../../assets/caryAssets/blueLink.png', 76, 76);
+    this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
+    this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
+
+
     // this.load.image('ground', '/../../../assets/platform.png');
     this.load.script('otherPlayer3', '/scripts/stage3/otherPlayer3.js');
   },
@@ -92,6 +96,7 @@ App.stage3.prototype = {
   playersNotInGroup: true,
 
   create: function() {
+    this.physics.startSystem(Phaser.Physics.ARCADE);
 
 
     let x = -500;
@@ -142,10 +147,44 @@ App.stage3.prototype = {
     player.animations.add('left', [8, 9], 16, true);
     player.animations.add('down', [12, 13], 16, true);
 
+    player.animations.add('attackRight', [2], 16, true);
+    player.animations.add('attackUp', [6], 16, true);
+    player.animations.add('attackLeft', [10], 16, true);
+    player.animations.add('attackDown', [14], 16, true);
+
+
     var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
     timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
 
     var style = {fill: "white"};
+
+
+    //creates coins
+    coins = this.add.group();
+    coins.enableBody = true;
+    for (var i = 0; i < 50; i++) {
+      var startX = Math.round(Math.random() * (1000) - 500);
+      var startY = Math.round(Math.random() * (1000) - 500);
+      var coin = coins.create( startX, startY, 'coin');
+      coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
+      this.physics.arcade.enable(coin);
+      coin.animations.play('bling');
+    }
+
+    //creates boxes
+    boxes = this.add.group();
+    boxes.enableBody = true;
+    for (var i = 0; i < 10; i ++) {
+      var startX = Math.round(Math.random() * (1000) - 500);
+      var startY = Math.round(Math.random() * (1000) - 500);
+      var box = boxes.create(startX, startY, 'box');
+      box.scale.setTo(2, 2);
+      this.physics.arcade.enable(box);
+      box.body.collideWorldBounds = true;
+      box.body.mass = 5000;
+    }
+
+
 
     // var timer = setInterval(function () {
     //   App.info.timer--;
@@ -173,7 +212,7 @@ App.stage3.prototype = {
     arrows.setAll('checkWorldBounds', true);
 
     smokes = this.add.group();
-    smokes.createMultiple(30, 'greenLink');
+    smokes.createMultiple(30, 'smoke');
 
     App.info.socket.emit('startTimer');
 
@@ -192,11 +231,13 @@ App.stage3.prototype = {
     // this.physics.arcade.overlap(arrows, players, function (player, raptor) {
     //   App.info.health -= .1;
     // }, null, this);
-
+    var context = this;
     ////////// TIMER AND SCORE
     App.info.socket.on('updateTimer', function(serverTimer) {
       App.info.timer = serverTimer;
     });
+
+    App.info.socket.on('startNextStage', function() { startNextStage(context); });
 
 
     if ((App.info.timer % 60) < 10) {
@@ -214,12 +255,24 @@ App.stage3.prototype = {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.overlap(App.info.players[i].player, coins, function(player, coin) {
+          coin.kill();
+        }, null, this);
+        this.physics.arcade.collide(App.info.players[i].player, box);
+
         this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandler, null, this);
         App.info.players[i].player.anchor.x = 0.5;
         App.info.players[i].player.anchor.y = 0.5;
         App.info.players[i].player.animations.add('smoke');
       }
     }
+
+    // player collisions
+    this.physics.arcade.collide(player, box);
+    this.physics.arcade.overlap(player, coins, function(player, coin) {
+      coin.kill();
+      App.info.gold += 1;
+    }, null, this);
 
 
     ///////// CONTROLS
@@ -233,17 +286,20 @@ App.stage3.prototype = {
     // this.physics.arcade.collide(player, platforms);
     
     if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.left.isDown) {
+      player.animations.play('attackLeft');
       fireArrow('left');
-
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.right.isDown) {
+      player.animations.play('attackRight');
       fireArrow('right');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.up.isDown) {
+      player.animations.play('attackUp');
       fireArrow('up');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.down.isDown) {
+      player.animations.play('attackDown');
       fireArrow('down');
     }
 
-    if (cursors.left.isDown) {
+    else if (cursors.left.isDown) {
       player.body.velocity.x = -150;
       player.animations.play('left');
     } else if (cursors.right.isDown) {
@@ -299,11 +355,14 @@ function fireArrow (direction) {
 
 }
 
-function resetArrow (arrow) {
 
+function startNextStage (context) {
+  context.state.start('stage2');
+}
+
+function resetArrow (arrow) {
     //  Called if the arrow goes out of the screen
     arrow.kill();
-
 };
 
 function collisionHandler (enemyPlayer, arrow) {
@@ -316,9 +375,6 @@ function collisionHandler (enemyPlayer, arrow) {
 
      // And create a smoke :)
     var smoke = smokes.getFirstExists(false);
-    smoke.bringToTop();
     smoke.reset(enemyPlayer.body.x, enemyPlayer.body.y);
-    smoke.play('greenLink', 30, false, true);
-    console.log('ZSMOKE', smoke.z);
-    console.log('Zenemy', enemyPlayer.z);
+    smoke.play('smoke', 30, false, true);
 }

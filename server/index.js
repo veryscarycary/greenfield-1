@@ -13,7 +13,7 @@ require('./config/passport')(passport);
 var Player = require('./player.js');
 var players = [];
 global.counter = 0;
-var stage3Timer = 60;
+var stage3Timer = 120;
 var timerStarted = false;
 
 app.use(express.static(__dirname + '/../client'));
@@ -93,8 +93,9 @@ var startStage3Timer = function(player) {
   if (timerStarted) { return; }
   var timer = setInterval(function () {
     stage3Timer--;
-    if (stage3Timer === 0) {
-      // cancel timer and allow it to be started again
+    if (stage3Timer <= 0) {
+      // start next stage, cancel timer and allow it to be started again
+      io.sockets.emit('startNextStage');
       clearInterval(timer);
       timerStarted = false;
     }

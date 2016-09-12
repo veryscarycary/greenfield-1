@@ -89,6 +89,27 @@ var connectionFuncs = function (player) {
   player.on('startTimer', function () {
     startStage3Timer(this);
   });
+  player.on('shotsFired', function (data) {
+    reportShotsFired(data, this);
+  });
+};
+
+var reportShotsFired = function(data, player) {
+  var shootingPlayer = findPlayer(player.id);
+
+  if (!shootingPlayer) {
+    console.log('player not found, cannot move' + player.id);
+    return;
+  }
+
+  player.broadcast.emit('reportShotsFired', {
+    shooter: {
+      id: shootingPlayer.id,
+      x: shootingPlayer.getX(),
+      y: shootingPlayer.getY()
+    },
+    direction: data.direction
+  });
 };
 
 

@@ -93,6 +93,8 @@ App.stage1.prototype = {
 
   update: function() {
 
+    playersTouching = false;
+    playerTouching = false;
     var context = this;
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
@@ -103,8 +105,7 @@ App.stage1.prototype = {
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
         this.physics.arcade.collide(App.info.players[i].player, coin, function(){
-          coin.kill();
-          context.state.start('stage2');
+          playersTouching = true;
         });
         this.physics.arcade.collide(App.info.players[i].player, box);
       }
@@ -116,16 +117,25 @@ App.stage1.prototype = {
     this.physics.arcade.collide(player, platforms);
 
 
+
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, function() {
-      coin.kill();
-      App.info.gold += 1;
-      context.state.start('stage2');
+      playerTouching = true;
       
     });
+
+    if ( App.info.players.length === 0 ) {
+      playersTouching = true;
+    }
+    
+    if (playersTouching && playerTouching) {
+      setTimeout(function () {
+        context.state.start('stage2'); 
+      }, 1000);  
+    }
     
 
     if (cursors.left.isDown) {

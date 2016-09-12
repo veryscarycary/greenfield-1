@@ -65,18 +65,18 @@ App.stage3.prototype = {
   weapons: [],
   preload: function() {
     this.load.image('scorchedEarth', '/../../../assets/caryAssets/scorched_earth.png');
-    this.load.image('lavaleft1', '/../../../assets/caryAssets/lavaleft1.png');
-    this.load.image('lavaleft2', '/../../../assets/caryAssets/lavaleft2.png');
-    this.load.image('lavaleft3', '/../../../assets/caryAssets/lavaleft3.png');
-    this.load.image('lavaright1', '/../../../assets/caryAssets/lavaright1.png');
-    this.load.image('lavaright2', '/../../../assets/caryAssets/lavaright2.png');
-    this.load.image('lavaright3', '/../../../assets/caryAssets/lavaright3.png');
-    this.load.image('lavatop1', '/../../../assets/caryAssets/lavatop1.png');
-    this.load.image('lavatop2', '/../../../assets/caryAssets/lavatop2.png');
-    this.load.image('lavatop3', '/../../../assets/caryAssets/lavatop3.png');
-    this.load.image('lavabottom1', '/../../../assets/caryAssets/lavabottom1.png');
-    this.load.image('lavabottom2', '/../../../assets/caryAssets/lavabottom2.png');
-    this.load.image('lavabottom3', '/../../../assets/caryAssets/lavabottom3.png');
+    // this.load.image('lavaleft1', '/../../../assets/caryAssets/lavaleft1.png');
+    // this.load.image('lavaleft2', '/../../../assets/caryAssets/lavaleft2.png');
+    // this.load.image('lavaleft3', '/../../../assets/caryAssets/lavaleft3.png');
+    // this.load.image('lavaright1', '/../../../assets/caryAssets/lavaright1.png');
+    // this.load.image('lavaright2', '/../../../assets/caryAssets/lavaright2.png');
+    // this.load.image('lavaright3', '/../../../assets/caryAssets/lavaright3.png');
+    // this.load.image('lavatop1', '/../../../assets/caryAssets/lavatop1.png');
+    // this.load.image('lavatop2', '/../../../assets/caryAssets/lavatop2.png');
+    // this.load.image('lavatop3', '/../../../assets/caryAssets/lavatop3.png');
+    // this.load.image('lavabottom1', '/../../../assets/caryAssets/lavabottom1.png');
+    // this.load.image('lavabottom2', '/../../../assets/caryAssets/lavabottom2.png');
+    // this.load.image('lavabottom3', '/../../../assets/caryAssets/lavabottom3.png');
     this.load.image('arrow', '/../../../assets/caryAssets/arrow.png');
     this.load.spritesheet('poof', '/../../../assets/caryAssets/smoke.png', 45, 45);
     this.load.spritesheet('splat', '/../../../assets/caryAssets/blood.png', 45, 45);

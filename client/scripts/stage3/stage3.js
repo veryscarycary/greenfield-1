@@ -78,7 +78,8 @@ App.stage3.prototype = {
     this.load.image('lavabottom2', '/../../../assets/caryAssets/lavabottom2.png');
     this.load.image('lavabottom3', '/../../../assets/caryAssets/lavabottom3.png');
     this.load.image('arrow', '/../../../assets/caryAssets/arrow.png');
-    this.load.spritesheet('smoke', '/../../../assets/caryAssets/smoke.png', 45, 45);
+    this.load.spritesheet('poof', '/../../../assets/caryAssets/smoke.png', 45, 45);
+    this.load.spritesheet('splat', '/../../../assets/caryAssets/blood.png', 45, 45);
 
     this.load.spritesheet('greenLink', '/../../../assets/caryAssets/greenLink.png', 76, 76);
     this.load.spritesheet('greenLinkAttackRL', '/../../../assets/caryAssets/greenLinkAttackRL.png', 85, 76);
@@ -110,15 +111,6 @@ App.stage3.prototype = {
     land = this.add.tileSprite(0, 0, 800, 600, 'scorchedEarth');
     land.fixedToCamera = true;
 
-    // this.weapons.push(new Weapon.SingleArrow(this.game));
-
-
-    // this.physics.startSystem(Phaser.Physics.ARCADE);
-    // platforms = this.add.group();
-    // platforms.enableBody = true;
-    // var ground = platforms.create(0, this.world.height - 64, 'ground');
-    // ground.scale.setTo(2, 2);
-    // ground.body.immovable = true;
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
@@ -127,10 +119,8 @@ App.stage3.prototype = {
     console.log('Player Sprite INFO', player);
     player.anchor.setTo(0.5, 0.5);
 
-    // player = this.add.sprite(32, this.world.height - 150, 'dude');
     this.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.collideWorldBounds = true;
-    // player.body.gravity.y = 300;
 
     player.body.drag.setTo(200, 200);
     player.body.maxVelocity.setTo(400, 400);
@@ -184,24 +174,6 @@ App.stage3.prototype = {
       box.body.mass = 5000;
     }
 
-
-
-    // var timer = setInterval(function () {
-    //   App.info.timer--;
-    //   if (App.info.timer === 0) {
-    //     clearInterval(timer);
-    //   }
-    // }, 1000);
-
-    // setInterval(function () {
-    //   if (App.info.attackSprites.length) {
-    //     App.info.attackSprites.forEach(function(sprite) {
-    //       console.log(App.info.attackSprites);
-    //       sprite.kill();
-    //     });
-    //   }
-    // }, 50); 
-
     arrows = this.add.group();
     arrows.enableBody = true;
     arrows.physicsBodyType = Phaser.Physics.ARCADE;
@@ -212,7 +184,8 @@ App.stage3.prototype = {
     arrows.setAll('checkWorldBounds', true);
 
     smokes = this.add.group();
-    smokes.createMultiple(30, 'smoke');
+    smokes.createMultiple(30, 'splat');
+    smokes.forEach(setupSmoke, this);
 
     App.info.socket.emit('startTimer');
 
@@ -226,11 +199,6 @@ App.stage3.prototype = {
 
   update: function() {
 
-
-
-    // this.physics.arcade.overlap(arrows, players, function (player, raptor) {
-    //   App.info.health -= .1;
-    // }, null, this);
     var context = this;
     ////////// TIMER AND SCORE
     App.info.socket.on('updateTimer', function(serverTimer) {
@@ -260,10 +228,11 @@ App.stage3.prototype = {
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, box);
 
-        this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandler, null, this);
-        App.info.players[i].player.anchor.x = 0.5;
-        App.info.players[i].player.anchor.y = 0.5;
-        App.info.players[i].player.animations.add('smoke');
+        this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandlerEnemy, null, this);
+        this.physics.arcade.overlap(arrows, player, collisionHandlerPlayer, null, this);
+        // App.info.players[i].player.anchor.x = 0.5;
+        // App.info.players[i].player.anchor.y = 0.5;
+        // App.info.players[i].player.animations.add('smoke');
       }
     }
 
@@ -273,6 +242,15 @@ App.stage3.prototype = {
       coin.kill();
       App.info.gold += 1;
     }, null, this);
+
+    App.info.socket.on('updateTimer', function(serverTimer) {
+      App.info.timer = serverTimer;
+    });
+    
+    //////// ENEMY ARROWS
+    App.info.socket.on('reportShotsFired', function(data) {
+      fireArrow(data.direction, data.shooter);
+    });
 
 
     ///////// CONTROLS
@@ -286,15 +264,19 @@ App.stage3.prototype = {
     // this.physics.arcade.collide(player, platforms);
     
     if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.left.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'left'});
       player.animations.play('attackLeft');
       fireArrow('left');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.right.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'right'});
       player.animations.play('attackRight');
       fireArrow('right');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.up.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'up'});
       player.animations.play('attackUp');
       fireArrow('up');
     } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.down.isDown) {
+      App.info.socket.emit('shotsFired', {direction: 'down'});
       player.animations.play('attackDown');
       fireArrow('down');
     }
@@ -328,31 +310,37 @@ App.stage3.prototype = {
   }
 };
 
-function fireArrow (direction) {
-    var fire = function (xORy, speed, spacingx, spacingy) {
-      arrow.reset(player.x + spacingx, player.y + spacingy);
-      arrow.body.velocity[xORy] = speed;
-      arrowTime = App.info.game.time.now + 200;
-    };
+function setupSmoke(smoke) {
+  smoke.anchor.x = .1;
+  smoke.anchor.y = .1;
+  smoke.animations.add('splat');
+}
 
-    //  To avoid them being allowed to fire too fast we set a time limit
-    if (App.info.game.time.now > arrowTime)
-    {
-        //  Grab the first arrow we can from the pool
-        arrow = arrows.getFirstExists(false);
+function fireArrow (direction, shooter) {
+  shooter = shooter || player;
 
-        if (arrow && direction === 'up') {
-            //  And fire it
-          fire('y', -400, 0, -12);
-        } else if (arrow && direction === 'down') {
-          fire('y', 400, 0, 12);
-        } else if (arrow && direction === 'left') {
-          fire('x', -400, -12, 0);
-        } else if (arrow && direction === 'right') {
-          fire('x', 400, 12, 0);
-        }
+  var fire = function (xORy, speed, spacingx, spacingy, shooter) {
+    arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
+    arrow.body.velocity[xORy] = speed;
+    arrowTime = App.info.game.time.now + 200;
+  };
+
+  //  To avoid them being allowed to fire too fast we set a time limit
+  if (App.info.game.time.now > arrowTime) {
+    //  Grab the first arrow we can from the pool
+    arrow = arrows.getFirstExists(false);
+
+    if (arrow && direction === 'up') {
+        //  And fire it
+      fire('y', -400, 0, -60, shooter);
+    } else if (arrow && direction === 'down') {
+      fire('y', 400, 0, 60, shooter);
+    } else if (arrow && direction === 'left') {
+      fire('x', -400, -60, 0, shooter);
+    } else if (arrow && direction === 'right') {
+      fire('x', 400, 60, 0, shooter);
     }
-
+  }
 }
 
 
@@ -363,18 +351,31 @@ function startNextStage (context) {
 function resetArrow (arrow) {
     //  Called if the arrow goes out of the screen
     arrow.kill();
+}
+
+function collisionHandlerPlayer (player, arrow) {
+  //  When an arrow hits our player, we kill the arrow
+  arrow.kill();
+
+  //  decrease the health
+  App.info.health -= 1;
+
+   // And create a smoke :)
+  var smoke = smokes.getFirstExists(false);
+  smoke.reset(player.body.x, player.body.y);
+  smoke.play('splat', 30, false, true);
 };
 
-function collisionHandler (enemyPlayer, arrow) {
+function collisionHandlerEnemy (enemyPlayer, arrow) {
 
-    //  When an arrow hits another player, we kill the arrow
-    arrow.kill();
+  //  When an arrow hits another player, we kill the arrow
+  arrow.kill();
 
-    //  Increase the score
-    App.info.score += 20;
+  //  Increase the score
+  App.info.score += 20;
 
-     // And create a smoke :)
-    var smoke = smokes.getFirstExists(false);
-    smoke.reset(enemyPlayer.body.x, enemyPlayer.body.y);
-    smoke.play('smoke', 30, false, true);
-}
+   // And create a smoke :)
+  var smoke = smokes.getFirstExists(false);
+  smoke.reset(enemyPlayer.body.x, enemyPlayer.body.y);
+  smoke.play('splat', 30, false, true);
+};

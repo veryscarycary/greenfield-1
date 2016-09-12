@@ -119,7 +119,7 @@ App.stage1.prototype = {
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player, box);
+    this.physics.arcade.collide(player,box);
     this.physics.arcade.collide(player, coin, function() {
       coin.kill();
       App.info.gold += 1;
@@ -184,7 +184,6 @@ App.info = { // this is the source of truth of info for each stage
   health: 100,
   gold: 0,
   players: [],
-
   timer: 60, // seconds (stage3)
 
   color: 0xffffff,
@@ -194,7 +193,9 @@ App.info = { // this is the source of truth of info for each stage
   jump: 1,
   difficulty: 1,
 
-  socket: io.connect('http://107.170.245.62:3000'), // sets this player's socket
+ // sets this player's socket
+  socket: io.connect('http://localhost:3000'), // sets this player's socket
+
   
   //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {

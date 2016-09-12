@@ -78,6 +78,7 @@ App.stage3.prototype = {
     this.load.image('lavabottom2', '/../../../assets/caryAssets/lavabottom2.png');
     this.load.image('lavabottom3', '/../../../assets/caryAssets/lavabottom3.png');
     this.load.image('arrow', '/../../../assets/caryAssets/arrow.png');
+    this.load.spritesheet('smoke', '/../../../assets/caryAssets/smoke.png', 45, 45);
 
     this.load.spritesheet('greenLink', '/../../../assets/caryAssets/greenLink.png', 76, 76);
     this.load.spritesheet('greenLinkAttackRL', '/../../../assets/caryAssets/greenLinkAttackRL.png', 85, 76);
@@ -146,12 +147,12 @@ App.stage3.prototype = {
 
     var style = {fill: "white"};
 
-    var timer = setInterval(function () {
-      App.info.timer--;
-      if (App.info.timer === 0) {
-        clearInterval(timer);
-      }
-    }, 1000);
+    // var timer = setInterval(function () {
+    //   App.info.timer--;
+    //   if (App.info.timer === 0) {
+    //     clearInterval(timer);
+    //   }
+    // }, 1000);
 
     // setInterval(function () {
     //   if (App.info.attackSprites.length) {
@@ -171,6 +172,12 @@ App.stage3.prototype = {
     arrows.setAll('outOfBoundsKill', true);
     arrows.setAll('checkWorldBounds', true);
 
+    smokes = this.add.group();
+    smokes.createMultiple(30, 'greenLink');
+
+    App.info.socket.emit('startTimer');
+
+
     //this is important to bring in your players!!
     App.info.stageConnect();
 
@@ -187,6 +194,10 @@ App.stage3.prototype = {
     // }, null, this);
 
     ////////// TIMER AND SCORE
+    App.info.socket.on('updateTimer', function(serverTimer) {
+      App.info.timer = serverTimer;
+    });
+
 
     if ((App.info.timer % 60) < 10) {
       var seconds = '0' + (App.info.timer % 60);
@@ -203,6 +214,10 @@ App.stage3.prototype = {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandler, null, this);
+        App.info.players[i].player.anchor.x = 0.5;
+        App.info.players[i].player.anchor.y = 0.5;
+        App.info.players[i].player.animations.add('smoke');
       }
     }
 
@@ -290,3 +305,20 @@ function resetArrow (arrow) {
     arrow.kill();
 
 };
+
+function collisionHandler (enemyPlayer, arrow) {
+
+    //  When an arrow hits another player, we kill the arrow
+    arrow.kill();
+
+    //  Increase the score
+    App.info.score += 20;
+
+     // And create a smoke :)
+    var smoke = smokes.getFirstExists(false);
+    smoke.bringToTop();
+    smoke.reset(enemyPlayer.body.x, enemyPlayer.body.y);
+    smoke.play('greenLink', 30, false, true);
+    console.log('ZSMOKE', smoke.z);
+    console.log('Zenemy', enemyPlayer.z);
+}

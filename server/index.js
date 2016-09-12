@@ -13,6 +13,8 @@ require('./config/passport')(passport);
 var Player = require('./player.js');
 var players = [];
 global.counter = 0;
+var stage3Timer = 120;
+var timerStarted = false;
 
 app.use(express.static(__dirname + '/../client'));
 app.use(bodyParser.json());
@@ -83,11 +85,27 @@ var connectionFuncs = function (player) {
   });
   player.on('p2player', function(data){
     moveP2Player(data, this);
+  player.on('startTimer', function () {
+    startStage3Timer(this);
   });
 };
 
 
-
+var startStage3Timer = function(player) {
+  if (timerStarted) { return; }
+  var timer = setInterval(function () {
+    stage3Timer--;
+    if (stage3Timer <= 0) {
+      // start next stage, cancel timer and allow it to be started again
+      io.sockets.emit('startNextStage');
+      clearInterval(timer);
+      timerStarted = false;
+    }
+    // send timer to all clients
+    io.sockets.emit('updateTimer', stage3Timer);
+  }, 1000);
+  timerStarted = true;
+};
 
 var playerDisconnect = function(player) {
   console.log('player disconnected:' + player.id);
@@ -107,7 +125,7 @@ var playerDisconnect = function(player) {
 
 
 //a function used when changing stages-similair to new player
-var repopPlayers = function(data, player){
+var repopPlayers = function(data, player) {
   console.log("repopPlayers server side function called");
 
   //
@@ -116,7 +134,7 @@ var repopPlayers = function(data, player){
 
   //create a new player objext
   var nPlayer = new Player(data.x, data.y, data.angle);
-  if (findPlayer(player.id)){
+  if (findPlayer(player.id)) {
     console.log('player already stored in server!');
     return;
   }
@@ -131,7 +149,7 @@ var repopPlayers = function(data, player){
     angle: nPlayer.getAngle()
 
   });
-  console.log("server side players array",players);
+  console.log("server side players array", players);
   //inform newly created player of previous players
   for (var i = 0; i < players.length; i ++) {
     var oldPlayer = players[i];
@@ -145,7 +163,7 @@ var repopPlayers = function(data, player){
 
   // //add to players array
   players.push(nPlayer); 
-  console.log('serverside players',players);
+  console.log('serverside players', players);
 };
 
 
@@ -155,7 +173,7 @@ var newPlayer = function(data, player) {
   //create a new player objext
   var nPlayer = new Player(data.x, data.y, data.angle);
 
-  if(findPlayer(player.id)){
+  if (findPlayer(player.id)) {
     console.log('player already stored in server!');
     return;
   }
@@ -187,7 +205,7 @@ var newPlayer = function(data, player) {
   //add to players array
 
   players.push(nPlayer); 
-  console.log('serverside players',players);
+  console.log('serverside players', players);
 };
 
 var movePlayer = function (data, player) {

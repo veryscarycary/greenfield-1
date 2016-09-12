@@ -6,7 +6,7 @@ App.stage5 = function(game) {
 
 App.stage5.prototype = {
   preload: function() {
-    this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
+    this.load.image('pacman', '/../../../assets/pacman.png', 32, 32);
     this.load.image('background', '/../../../assets/space.png');
     this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
     // this.load.image('ground', '/../../../assets/platform.png');
@@ -44,7 +44,7 @@ App.stage5.prototype = {
 
     }
 
-    player = this.add.sprite(200, this.world.height - 150, 'dude');
+    player = this.add.sprite(200, this.world.height - 150, 'pacman');
 
     this.physics.p2.enable(player, false);
     player.body.setCircle(15);
@@ -54,8 +54,8 @@ App.stage5.prototype = {
     player.body.setCollisionGroup(App.info.playerGroup);
 
     // player.body.gravity.y = 50;
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    // player.animations.add('left', [0, 1, 2, 3], 10, true);
+    // player.animations.add('right', [5, 6, 7, 8], 10, true);
 
     player.body.collides(App.info.playerGroup, this.hitPlayer, this);
     player.body.collides(coinGroup, this.hit, this);
@@ -103,10 +103,10 @@ App.stage5.prototype = {
 
     if (cursors.left.isDown) {
       player.body.rotateLeft(80);
-      player.animations.play('left');
+      // player.animations.play('left');
     } else if (cursors.right.isDown) {
       player.body.rotateRight(80);
-      player.animations.play('right');
+      // player.animations.play('right');
     } else {
       player.animations.stop();
       player.frame = 4;

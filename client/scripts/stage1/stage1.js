@@ -144,9 +144,9 @@ App.stage1.prototype = {
 
     var key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    if (key1.isDown) {
-      this.state.start('stage3'); 
-    }
+    // if (key1.isDown) {
+    //   this.state.start('stage3'); 
+    // }
     // every frame, each player will emit their x,y,angle to every player
     // including self
     App.info.socket.emit('move player', {
@@ -176,18 +176,17 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('connect', function() {
       App.info.socketConnect();
     });
-<<<<<<< HEAD
     App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
     App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
     App.info.socket.on('movep2player', function(data){App.info.moveP2Player(data); });
     App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
-=======
+
     App.info.socket.on('disconnected', function() { App.info.socketDisconnect(); });
     App.info.socket.on('newplayer', function(data) { App.info.createPlayer(data); });
     App.info.socket.on('moveplayer', function(data) { App.info.movePlayer(data); });
     App.info.socket.on('remove player', function(data) { App.info.removePlayer(data); });
->>>>>>> 342ee952097b5a5a41bfa5f4d65f9ab58d362e61
+
     App.info.socket.on('stage', function() {
       App.info.stageConnect();
     });

@@ -85,6 +85,7 @@ var connectionFuncs = function (player) {
   });
   player.on('p2player', function(data){
     moveP2Player(data, this);
+  });
   player.on('startTimer', function () {
     startStage3Timer(this);
   });

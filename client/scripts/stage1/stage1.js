@@ -147,8 +147,8 @@ App.stage1.prototype = {
       // this.state.start('stage5');
       // console.log('start stage 5');
 
-      this.state.start('store');
-      console.log('start stage 2');
+      this.state.start('stage3');
+      console.log('start stage 3');
 
     }
 
@@ -194,7 +194,7 @@ App.info = { // this is the source of truth of info for each stage
   jump: 1,
   difficulty: 1,
 
-  socket: io.connect('http://localhost:3000'), // sets this player's socket
+  socket: io.connect('http://107.170.245.62:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {

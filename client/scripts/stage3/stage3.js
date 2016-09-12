@@ -110,15 +110,6 @@ App.stage3.prototype = {
     land = this.add.tileSprite(0, 0, 800, 600, 'scorchedEarth');
     land.fixedToCamera = true;
 
-    // this.weapons.push(new Weapon.SingleArrow(this.game));
-
-
-    // this.physics.startSystem(Phaser.Physics.ARCADE);
-    // platforms = this.add.group();
-    // platforms.enableBody = true;
-    // var ground = platforms.create(0, this.world.height - 64, 'ground');
-    // ground.scale.setTo(2, 2);
-    // ground.body.immovable = true;
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
@@ -127,10 +118,8 @@ App.stage3.prototype = {
     console.log('Player Sprite INFO', player);
     player.anchor.setTo(0.5, 0.5);
 
-    // player = this.add.sprite(32, this.world.height - 150, 'dude');
     this.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.collideWorldBounds = true;
-    // player.body.gravity.y = 300;
 
     player.body.drag.setTo(200, 200);
     player.body.maxVelocity.setTo(400, 400);
@@ -184,24 +173,6 @@ App.stage3.prototype = {
       box.body.mass = 5000;
     }
 
-
-
-    // var timer = setInterval(function () {
-    //   App.info.timer--;
-    //   if (App.info.timer === 0) {
-    //     clearInterval(timer);
-    //   }
-    // }, 1000);
-
-    // setInterval(function () {
-    //   if (App.info.attackSprites.length) {
-    //     App.info.attackSprites.forEach(function(sprite) {
-    //       console.log(App.info.attackSprites);
-    //       sprite.kill();
-    //     });
-    //   }
-    // }, 50); 
-
     arrows = this.add.group();
     arrows.enableBody = true;
     arrows.physicsBodyType = Phaser.Physics.ARCADE;
@@ -226,11 +197,6 @@ App.stage3.prototype = {
 
   update: function() {
 
-
-
-    // this.physics.arcade.overlap(arrows, players, function (player, raptor) {
-    //   App.info.health -= .1;
-    // }, null, this);
     var context = this;
     ////////// TIMER AND SCORE
     App.info.socket.on('updateTimer', function(serverTimer) {
@@ -273,6 +239,8 @@ App.stage3.prototype = {
       coin.kill();
       App.info.gold += 1;
     }, null, this);
+
+    //////// ENEMY ARROWS
 
 
     ///////// CONTROLS

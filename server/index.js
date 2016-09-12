@@ -73,18 +73,38 @@ var connectionFuncs = function (player) {
   player.on('disconnect', function () {
     playerDisconnect(this);
   });
-  player.on('new player', function (data){
-    newPlayer(data,this);
+  player.on('new player', function (data) {
+    newPlayer(data, this);
   });
   player.on('move player', function(data) {
-
     movePlayer(data, this);
   });
-  player.on('repop', function (data){
-    repopPlayers(data,this);
+  player.on('repop', function (data) {
+    repopPlayers(data, this);
   });
   player.on('startTimer', function () {
     startStage3Timer(this);
+  });
+  player.on('shotsFired', function () {
+    reportShotsFired(data, this);
+  });
+};
+
+var reportShotsFired = function(data, player) {
+  var shootingPlayer = findPlayer(player.id);
+
+  if (!shootingPlayer) {
+    console.log('player not found, cannot move' + player.id);
+    return;
+  }
+
+  player.broadcast.emit('reportShotsFired', {
+    shooter: {
+      id: shootingPlayer.id,
+      x: shootingPlayer.getX(),
+      y: shootingPlayer.getY()
+    },
+    direction: data.direction
   });
 };
 
@@ -93,6 +113,7 @@ var startStage3Timer = function(player) {
   if (timerStarted) { return; }
   var timer = setInterval(function () {
     stage3Timer--;
+    console.log('SERVERTIMER', stage3Timer);
     if (stage3Timer <= 0) {
       // start next stage, cancel timer and allow it to be started again
       io.sockets.emit('startNextStage');

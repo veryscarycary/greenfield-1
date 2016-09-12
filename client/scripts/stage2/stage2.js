@@ -199,6 +199,10 @@ App.stage2.prototype = {
     scoreText.text = updatedScore;
     playersTouching = false;
     playerTouching = false;
+
+    if ( App.info.players.length === 0 ) {
+      playersTouching = true;
+    }
     //this function updates each player each frame- KEEP!!!
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
@@ -242,7 +246,7 @@ App.stage2.prototype = {
     });
 
     if (playersTouching && playerTouching) {
-      this.state.start('stage3');
+      this.state.start('store');
     }
 
 

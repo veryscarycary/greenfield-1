@@ -133,7 +133,7 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage2');
+      this.state.start('store');
       console.log('start stage 2');
     }
     if (cursors.up.isDown && player.body.touching.down) {

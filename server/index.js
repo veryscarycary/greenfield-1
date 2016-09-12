@@ -13,7 +13,7 @@ require('./config/passport')(passport);
 var Player = require('./player.js');
 var players = [];
 global.counter = 0;
-var stage3Timer = 120;
+var stage3Timer = 60;
 var timerStarted = false;
 
 app.use(express.static(__dirname + '/../client'));

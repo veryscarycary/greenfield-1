@@ -14,17 +14,31 @@ App.stage1.prototype = {
     this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
     this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
+    this.load.spritesheet('box','/../../../assets/box.png', 34, 34);
 
   },
 
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.add.tileSprite(0, 0, 800, 600, 'background');
+    this.physics.arcade.OVERLAP_BIAS = 10;
+
+
     platforms = this.add.group();
     platforms.enableBody = true;
     var ground = platforms.create(0, this.world.height - 64, 'ground');
     ground.scale.setTo(2, 2);
     ground.body.immovable = true;
+    ground.tint = 0xFF0000;
+
+    var ledge = platforms.create(400,400, 'ground');
+    ledge.body.immovable = true;
+    ledge.tint = 0xFF0000;
+    ledge = platforms.create( -150, 250, 'ground');
+    ledge.body.immovable = true;
+    ledge.tint = 0xFF0000;
+
+
     player = this.add.sprite(32, this.world.height - 150, 'dude');
     App.info.player = player;
     this.physics.arcade.enable(player);
@@ -34,7 +48,7 @@ App.stage1.prototype = {
     player.animations.add('right', [5, 6, 7, 8], 10, true);
 
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
-    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '32px', fill: '#fff'});
+    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '25px', fill: '#fff'});
     var style = {fill: "white"};
 
     //adds text to screen
@@ -51,11 +65,17 @@ App.stage1.prototype = {
     this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     //creates coin
-    coin = this.add.sprite(400, 0, 'coin');
+    coin = this.add.sprite(100, 0, 'coin');
     coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
     this.physics.arcade.enable(coin);
     coin.body.gravity.y = 300;
     coin.animations.play('bling');
+
+    //box
+    box = this.add.sprite(400, 0, 'box');
+    this.physics.arcade.enable(box);
+    box.body.gravity.y = 300;
+
 
     
 
@@ -63,6 +83,7 @@ App.stage1.prototype = {
 
   update: function() {
 
+    var context = this;
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
     // for each of the connected players, run each player's update fn
@@ -73,7 +94,9 @@ App.stage1.prototype = {
         this.physics.arcade.collide(player, App.info.players[i].player);
         this.physics.arcade.collide(App.info.players[i].player, coin, function(){
           coin.kill();
+          context.state.start('stage2');
         });
+        this.physics.arcade.collide(App.info.players[i].player, box);
       }
     }
 
@@ -85,9 +108,12 @@ App.stage1.prototype = {
 
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
+    this.physics.arcade.collide(box, platforms);
+    this.physics.arcade.collide(player,box);
     this.physics.arcade.collide(player, coin, function() {
       coin.kill();
       App.info.gold += 1;
+      context.state.start('stage2');
       
     });
     
@@ -119,7 +145,7 @@ App.stage1.prototype = {
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
     
     if (this.key1.isDown) {
-      this.state.start('stage5'); 
+      this.state.start('stage2'); 
     }
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -215,7 +241,7 @@ App.info = { // this is the source of truth of info for each stage
     var movedPlayer = App.info.findPlayer(data.id);
 
     if (!movedPlayer) { // if player is not in players array, don't continue
-      console.log('player not found', data.id);
+      console.log('player not found for move', data.id);
       return;
     }
 
@@ -251,7 +277,7 @@ App.info = { // this is the source of truth of info for each stage
     var removedPlayer = App.info.findPlayer(data.id);
 
     if (!removedPlayer) { // if player is not in players array, don't continue
-      console.log( 'player not found', data.id);
+      console.log( 'player not found for removal', data.id);
       return;
     }
 

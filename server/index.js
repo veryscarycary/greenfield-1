@@ -116,7 +116,10 @@ var repopPlayers = function(data, player){
 
   //create a new player objext
   var nPlayer = new Player(data.x, data.y, data.angle);
-
+  if (findPlayer(player.id)){
+    console.log('player already stored in server!');
+    return;
+  }
   nPlayer.id = player.id;
 
 
@@ -153,7 +156,7 @@ var newPlayer = function(data, player) {
   var nPlayer = new Player(data.x, data.y, data.angle);
 
   if(findPlayer(player.id)){
-    console.log('player already stored in server!')
+    console.log('player already stored in server!');
     return;
   }
   
@@ -198,6 +201,7 @@ var movePlayer = function (data, player) {
   movedPlayer.setX(data.x);
   movedPlayer.setY(data.y);
   movedPlayer.setAngle(data.angle);
+  
 
   player.broadcast.emit('moveplayer', {
     id: movedPlayer.id,

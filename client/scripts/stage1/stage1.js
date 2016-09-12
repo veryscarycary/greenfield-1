@@ -134,7 +134,7 @@ App.stage1.prototype = {
     if (playersTouching && playerTouching) {
       setTimeout(function () {
         context.state.start('stage2'); 
-      }, 1000);  
+      }, 3000);  
     }
     
 

@@ -279,10 +279,10 @@ App.stage4.prototype = {
 
     if (!special) {
       if (cursors.left.isDown) {
-        player.body.velocity.x = -150;
+        player.body.velocity.x = -150 * App.info.speed;
         player.animations.play('left');
       } else if (cursors.right.isDown) {
-        player.body.velocity.x = 150;
+        player.body.velocity.x = 150 * App.info.speed;
         player.animations.play('right');
       } else {
         player.animations.stop();
@@ -299,11 +299,11 @@ App.stage4.prototype = {
     } else {
       if (cursors.left.isDown) {
         //  Move to the left        
-        player.body.velocity.x = -400;
+        player.body.velocity.x = -400 * App.info.speed;
         player.animations.play('left');
       } else if (cursors.right.isDown) {
           //  Move to the right
-        player.body.velocity.x = 400;
+        player.body.velocity.x = 400 * App.info.speed;
         player.animations.play('right');
       } else {
           //  Stand still
@@ -330,6 +330,18 @@ App.stage4.prototype = {
       this.dead(player);
       poison = false;
       App.info.gold = Math.floor(App.info.gold / 2); //lose half your gold if you die
+    }
+
+        //death check
+    if (App.info.health <= 0) {
+      App.info.score = 0;
+      App.info.health = 100;
+      App.info.gold = 0;
+      App.info.color = 0xffffff;
+      App.info.speed = 1;
+      App.info.weight = 1;
+      App.info.snow = false;
+      App.info.jump = 1;
     }
 
     //tells the server your location each frame- KEEP!!!
@@ -380,7 +392,7 @@ App.stage4.prototype = {
   collectPoison: function(item, player) {
     item.kill();
     poison = true;
-    App.info.health -= 5;
+    App.info.health -= (5 * App.info.difficulty);
     //console.log("poison is collected");
     player.tint = '0x000000';
     setTimeout(function() {

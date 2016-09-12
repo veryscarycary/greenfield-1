@@ -167,6 +167,7 @@ App.store.prototype = {
 
   },
   update: function() {
+    var context = this;
 
     //updating other players
     for ( var i = 0; i < App.info.players.length; i ++) {
@@ -258,7 +259,9 @@ App.store.prototype = {
 
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
       witchhat.kill();
-      this.state.start(App.info.nextStage);
+      setTimeout(function () {
+        context.state.start(App.info.nextStage); 
+      }, 1000);
     }, null, this);
 
     this.physics.arcade.overlap(player, turtleshell, function(player, turtleshell) {

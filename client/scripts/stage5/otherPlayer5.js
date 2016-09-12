@@ -8,12 +8,12 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   this.player = player;
   this.alive = true;
 
-  this.player = game.add.sprite(x, y, 'dude');
+  this.player = game.add.sprite(x, y, 'pacman');
+  this.player.tint = 0x00ff00;
   this.player.angle = angle;
 
   // this.player.animations.add('left', [0, 1, 2, 3], 10, true);
   // this.player.animations.add('right', [5, 6, 7, 8], 10, true);
-
 
   this.player.name = index.toString();
 

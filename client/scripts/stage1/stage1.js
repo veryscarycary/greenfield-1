@@ -13,8 +13,8 @@ App.stage1.prototype = {
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
-    this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
-    this.load.spritesheet('box','/../../../assets/box.png', 34, 34);
+    this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
+    this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
 
   },
 
@@ -109,7 +109,7 @@ App.stage1.prototype = {
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player,box);
+    this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, function() {
       coin.kill();
       App.info.gold += 1;
@@ -133,19 +133,19 @@ App.stage1.prototype = {
     if (cursors.down.isDown) {
 
       //this line starts stage 2 -- important!
-      this.state.start('stage2');
-      console.log('start stage 2');
+      this.state.start('stage3');
+      console.log('start stage 3');
     }
+
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
       player.body.velocity.y = -300;
- 
-      
     }
-    this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR ]);
-    
-    if (this.key1.isDown) {
-      this.state.start('stage2'); 
+
+    var key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+    if (key1.isDown) {
+      this.state.start('stage3'); 
     }
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -167,6 +167,7 @@ App.info = { // this is the source of truth of info for each stage
   health: 100,
   gold: 0,
   players: [],
+  timer: 60, // seconds (stage3)
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on
@@ -175,10 +176,10 @@ App.info = { // this is the source of truth of info for each stage
     App.info.socket.on('connect', function() {
       App.info.socketConnect();
     });
-    App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
-    App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
-    App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
-    App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
+    App.info.socket.on('disconnected', function() { App.info.socketDisconnect(); });
+    App.info.socket.on('newplayer', function(data) { App.info.createPlayer(data); });
+    App.info.socket.on('moveplayer', function(data) { App.info.movePlayer(data); });
+    App.info.socket.on('remove player', function(data) { App.info.removePlayer(data); });
     App.info.socket.on('stage', function() {
       App.info.stageConnect();
     });

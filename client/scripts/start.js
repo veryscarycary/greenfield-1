@@ -9,5 +9,4 @@
 
   game.state.start('stage1');
 
-
 })();

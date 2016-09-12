@@ -209,7 +209,7 @@ App.stage2.prototype = {
           coin.kill();
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, box);
-        this.physics.arcade.overlap(App.info.players[i].player,door, function(){
+        this.physics.arcade.overlap(App.info.players[i].player, door, function() {
           playersTouching = true;
         });
       }

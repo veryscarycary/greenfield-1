@@ -22,8 +22,8 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   this.player.body.setCircle(15);
   // this.player.body.immovable = false;
   this.player.body.collideWorldBounds = true;
-
-  // this.player.body.setCollisionGroup(playerCollisionGroup);
+  this.player.body.setCollisionGroup(App.info.playerGroup);
+  this.player.body.collides([App.info.playerGroup]);
 
   this.lastPosition = { x: x, y: y, angle: angle };
 };

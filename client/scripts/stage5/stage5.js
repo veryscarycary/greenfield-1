@@ -23,13 +23,26 @@ App.stage5.prototype = {
 
     this.add.tileSprite(0, 0, 800, 600, 'background');
 
-    // this.physics.p2.updateBoundsCollisionGroup();
+    this.physics.p2.updateBoundsCollisionGroup();
+    var coinGroup = this.physics.p2.createCollisionGroup();
+    App.info.playerGroup = this.physics.p2.createCollisionGroup();
 
     // platforms = this.add.group();
     // platforms.enableBody = true;
     // var ground = platforms.create(0, this.world.height - 64, 'ground');
     // ground.scale.setTo(2, 2);
     // ground.body.immovable = true;
+    for (var i = 0; i < 30; i++) {
+    
+    coin = this.add.sprite(this.world.randomX, this.world.randomX, 'coin');
+    coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
+    this.physics.p2.enable(coin, false);
+    coin.body.setCircle(15);
+    coin.animations.play('bling');  
+    coin.body.setCollisionGroup(coinGroup);
+    coin.body.collides([App.info.playerGroup, coinGroup]);
+
+    }
 
     player = this.add.sprite(200, this.world.height - 150, 'dude');
 
@@ -38,23 +51,18 @@ App.stage5.prototype = {
 
     // this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
+    player.body.setCollisionGroup(App.info.playerGroup);
+
     // player.body.gravity.y = 50;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
 
-    // for (var i = 0; i < 30; i++) {
-    
-    // coin = this.add.sprite(this.world.randomX, this.world.randomX, 'coin');
-    // coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
-    // this.physics.p2.enable(coin, false);
-    // coin.body.setCircle(15);
-    // coin.animations.play('bling');
-
-    // }
+    player.body.collides(App.info.playerGroup, this.hitPlayer, this);
+    player.body.collides(coinGroup, this.hit, this);
+    player.body.createBodyCallback(this.world, this.hit, this);
 
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '32px', fill: '#fff'});
-    
 
     //this is important to bring in your players!!
     App.info.stageConnect();
@@ -63,22 +71,30 @@ App.stage5.prototype = {
 
   },
 
+  hit: function(body1, body2) {
+    console.log('HIT');
+    App.info.score = App.info.score - 1000;
+    App.info.health = App.info.health - 1;
+  },
+
+
+  hitPlayer: function(body1, body2) {
+    console.log('HITPLAYER');
+    App.info.score = App.info.score + 1000;
+  },
+
   update: function() {
 
     //this function updates each player each frame- KEEP!!!
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
+
         // playerCollisionGroup = this.physics.p2.createCollisionGroup();
         // this.physics.arcade.collide(player, App.info.players[i]);
       }
     }
 
-    this.physics.arcade.collide(player, coin, function() {
-      coin.kill();
-      App.info.gold += 1;
-      
-    });
 
     //controls
     var cursors = this.input.keyboard.createCursorKeys();
@@ -100,11 +116,15 @@ App.stage5.prototype = {
     if (cursors.up.isDown) {
       player.body.thrust(400);
       App.info.score += 5;
-      scoreText.text = 'Score:' + App.info.score;
+      // scoreText.text = 'Score:' + App.info.score;
+      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+      scoreText.text = updatedScore;
     } else if (cursors.down.isDown) {
       player.body.reverse(400);
       App.info.score += 5;
-      scoreText.text = 'Score:' + App.info.score;
+      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+      scoreText.text = updatedScore;
+      // scoreText.text = 'Score:' + App.info.score;
     }
 
 

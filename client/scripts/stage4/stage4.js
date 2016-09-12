@@ -20,6 +20,7 @@ App.stage4.prototype = {
     var height = 3000; //set world height here
     var time = 10;
     poison = false;
+    dead = false;
 
     this.world.setBounds(0, 0, 800, height);
     
@@ -164,7 +165,7 @@ App.stage4.prototype = {
     skulls = this.add.group();
     skulls.enableBody = true;
 
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 50; i++) {
       var randX = Math.floor(Math.random() * 780);
       var randY = Math.floor(Math.random() * 2920);
       this.makeSkull(randX, randY, true);
@@ -210,6 +211,9 @@ App.stage4.prototype = {
           this.collectPoison(skull, otherPlayer);
         }, null, this);
       }
+      if (App.info.players[i].player.info.health <= 0) {
+        this.dead(App.info.players[i].player);
+      }
     }
 
     // setInterval(function() {
@@ -235,8 +239,10 @@ App.stage4.prototype = {
       this.collect(star, 1, false, player);
     }.bind(this), this.checkPoison, this);
     this.physics.arcade.overlap(player, rainbowStars, function(player, rainbowStar) {
-      this.collect(rainbowStar, 5, true, player);
-    }.bind(this), null, this);
+      this.collect(rainbowStar, 5, true, player, 'rainbow');
+    }.bind(this), function() {
+      this.checkPoison(true); //allow this item to be picked up 
+    }, this); //checkPoison here should be ok
     this.physics.arcade.overlap(player, diamonds, function(player, diamond) {
       this.collect(diamond, 25, false, player, 'diamond');
     }.bind(this), this.checkPoison, this);
@@ -245,7 +251,13 @@ App.stage4.prototype = {
     }.bind(this), this.checkPoison, this);
     this.physics.arcade.overlap(player, skulls, function(player, skull) {
       this.collectPoison(skull, player);
-    }.bind(this), null, this);
+    }.bind(this), function() {
+      this.checkPoison(true);
+    }, this);
+    // this.physics.arcade.overlap(player, skulls, function(player, skull) {
+    //   this.collectPoison(skull, player);
+    // }.bind(this), this.checkPoison, this);
+
 
     if (!special) {
       if (cursors.left.isDown) {
@@ -262,6 +274,10 @@ App.stage4.prototype = {
       //   App.info.score += 10;
       //   scoreText.text = 'Score:' + App.info.score;
       // }
+      //  Allow the player to jump if they are touching the ground.
+      if (cursors.up.isDown && player.body.touching.down) {
+        player.body.velocity.y = -350;
+      }
     } else {
       if (cursors.left.isDown) {
         //  Move to the left        
@@ -275,17 +291,28 @@ App.stage4.prototype = {
           //  Stand still
         player.animations.stop();
         player.frame = 4;
+      }
+      //  Allow the player to jump if they are touching the ground.
+      if (cursors.up.isDown && player.body.touching.down) {
+        player.body.velocity.y = -400;
       }    
     }
 
 
-    //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down) {
-      player.body.velocity.y = -350;
-    }
+    // //  Allow the player to jump if they are touching the ground.
+    // if (cursors.up.isDown && player.body.touching.down) {
+    //   player.body.velocity.y = -350;
+    // }
     //update scoreboard
     var updatedScore = ('Score: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
+
+    //if player's health goes below zero, don't allow player to play anymore...;
+    if (App.info.health <= 0) {
+      this.dead(player);
+      poison = false;
+      App.info.gold = Math.floor(App.info.gold / 2); //lose half your gold if you die
+    }
 
     //tells the server your location each frame- KEEP!!!
     App.info.socket.emit('move player', {
@@ -343,8 +370,12 @@ App.stage4.prototype = {
       poison = false;
     }, 3000);
   },
-  checkPoison: function() {
-    if (poison && !special) {
+  checkPoison: function(allow) {
+    allow = allow || false;
+    if (App.info.health <= 0) {
+      return false;
+    }
+    if ((poison && !special) || allow) {
       //console.log("poison is on");
       return false;
     } else {
@@ -358,8 +389,8 @@ App.stage4.prototype = {
     var rainbow = this.makeRainbow(player);
     player.scale.setTo(2, 2);
     player.y = player.y - 10;
-    player.y = player.y + 15;
-    player.y = player.y - 10;
+    // player.y = player.y + 15;
+    // player.y = player.y - 10;
     setTimeout(function() {
       clearInterval(rainbow);
       player.tint = 0xFFFFFF; //remove tint
@@ -409,13 +440,17 @@ App.stage4.prototype = {
     float = float || false;
     skull = skulls.create(X, Y, 'skull');
     skull.scale.setTo(0.8, 0.8);
-    skull.tint = '0x581B47';
+    skull.tint = '0x6D4161';
     //diamond.scale.setTo(1, 1);
     if (!float) {
       skull.body.gravity.y = 300;
       skull.body.bounce.y = 0.7 + Math.random() * 0.2;
     }
     //this.makeRainbow(diamond);
+  },
+  dead: function(player) {
+    dead = true;
+    player.alpha = 0.5;
   }
 };  
 

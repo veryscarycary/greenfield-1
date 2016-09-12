@@ -93,7 +93,7 @@ App.stage2.prototype = {
     player.scale.setTo(1.75, 1.75);
     this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
-    player.body.gravity.y = 800;
+    player.body.gravity.y = 800 * App.info.weight;
     player.animations.add('right', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
     this.camera.follow(player);
     player.anchor.set(0.5);
@@ -125,12 +125,12 @@ App.stage2.prototype = {
       raptor.animations.add('raptorRight', [0, 1, 2, 3, 4, 5], 10, true);
       raptor.animations.play('raptorRight');
       raptor.body.gravity.y = 300;
-      raptor.body.velocity.x = 100;
+      raptor.body.velocity.x = 100 * App.info.difficulty;
       raptor.checkWorldBounds = true;
       
       raptor.events.onOutOfBounds.add(function (raptor) {
         raptor.reset(0, 400);
-        raptor.body.velocity.x = 100;
+        raptor.body.velocity.x = 100 * App.info.difficulty;
       }, this);
     }
 
@@ -143,12 +143,12 @@ App.stage2.prototype = {
       trex.animations.play('trexRight');
       trex.scale.setTo(-2, 2);
       trex.body.gravity.y = 300;
-      trex.body.velocity.x = -75;
+      trex.body.velocity.x = -75 * App.info.difficulty;
       trex.checkWorldBounds = true;
 
-      trex.events.onOutOfBounds.add(function (trex){
+      trex.events.onOutOfBounds.add(function (trex) {
         trex.reset(3800, 0);
-        trex.body.velocity.x = -75;
+        trex.body.velocity.x = -75 * App.info.difficulty;
       }, this);
 
     }
@@ -184,6 +184,15 @@ App.stage2.prototype = {
 
     door.scale.setTo(2.5, 2.5);
 
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
 
     //this is important to bring in your players!!
     App.info.socketHandlers();
@@ -234,11 +243,11 @@ App.stage2.prototype = {
     }, null, this);
 
     this.physics.arcade.overlap(player, raptors, function (player, raptor){
-      App.info.health -= .1;
+      App.info.health -= .1 * App.info.difficulty;
     }, null, this);
 
     this.physics.arcade.overlap(player, trexes, function (player, trex){
-      App.info.health -= .2;
+      App.info.health -= .2 * App.info.difficulty;
     }, null, this);
 
     this.physics.arcade.overlap(player, door, function() {
@@ -257,11 +266,11 @@ App.stage2.prototype = {
     player.body.velocity.x = 0;
 
     if (cursors.left.isDown) {
-      player.body.velocity.x = -150;
+      player.body.velocity.x = -150 * App.info.speed;
       player.animations.play('right');
       player.scale.setTo(-1.75, 1.75);
     } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150;
+      player.body.velocity.x = 150 * App.info.speed;
       player.animations.play('right');
       player.scale.setTo(1.75, 1.75);
     } else {
@@ -271,10 +280,22 @@ App.stage2.prototype = {
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
-      player.body.velocity.y = -600;
+      player.body.velocity.y = -600 * App.info.jump;
       scoreText.text = 'Score:' + App.info.score;
     }
 
+
+    //death check
+    if (App.info.health <= 0) {
+      App.info.score = 0;
+      App.info.health = 100;
+      App.info.gold = 0;
+      App.info.color = 0xffffff;
+      App.info.speed = 1;
+      App.info.weight = 1;
+      App.info.snow = false;
+      App.info.jump = 1;
+    }
 
     //tells the server your location each frame- KEEP!!!
     App.info.socket.emit('move player', {

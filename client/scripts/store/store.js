@@ -22,6 +22,8 @@ App.store.prototype = {
     this.load.image('snowman', '/../../../assets/snowman.png');
     this.load.image('carrot', '/../../../assets/carrot.png');
     this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
+    this.load.image('snow', '/../../../assets/snow2.png');
+    this.load.script('otherplayerstore', '/scripts/store/otherplayerstore.js');
   },
   
   create () {
@@ -46,7 +48,7 @@ App.store.prototype = {
     player.scale.setTo(1.75, 1.75);
     this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
-    player.body.gravity.y = 800;
+    player.body.gravity.y = 800 * App.info.weight;
     player.animations.add('right', [0, 1, 2, 3, 4, 5], 10, true);
     this.camera.follow(player);
     player.anchor.set(0.5);
@@ -56,7 +58,7 @@ App.store.prototype = {
     scoreText.fixedToCamera = true;
 
     //timer
-    this.time.events.add(Phaser.Timer.SECOND * 20, function () {
+    this.time.events.add(Phaser.Timer.SECOND * 30, function () {
       this.state.start('stage1');
     }, this);
 
@@ -147,6 +149,17 @@ App.store.prototype = {
     steak.scale.setTo(1.5, 1.5);
     this.physics.arcade.enable(steak);
 
+
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
+
     //this is important to bring in your players!!
     App.info.socketHandlers();
     App.info.stageConnect();
@@ -154,6 +167,70 @@ App.store.prototype = {
 
   },
   update: function() {
+
+    //updating other players
+    for ( var i = 0; i < App.info.players.length; i ++) {
+      if (App.info.players[i].alive) { 
+        App.info.players[i].update();
+        this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.collide(ground, App.info.players[i].player);
+
+
+        this.physics.arcade.overlap(App.info.players[i].player, skull, function(player, skull) {
+          skull.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, witchhat, function(player, witchhat) {
+          witchhat.kill();
+          this.state.start('stage1');
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, turtleshell, function(player, turtleshell) {
+          turtleshell.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, bluepotion, function(player, bluepotion) {
+          bluepotion.kill();
+          App.info.players[i].player.tint = 0x0000ff;
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, redpotion, function(player, redpotion) {
+          redpotion.kill();
+          App.info.players[i].player.tint = 0xff0000;
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, greenpotion, function(player, greenpotion) {
+          greenpotion.kill();
+          App.info.players[i].player.tint = 0x00ff00;
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, carrot, function(player, carrot) {
+          carrot.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, snowman, function(player, snowman) {
+          snowman.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, key, function(player, key) {
+          key.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, speedhat, function(player, speedhat) {
+          speedhat.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, feather, function(player, feather) {
+          feather.kill();
+        }, null, this);
+
+        this.physics.arcade.overlap(App.info.players[i].player, steak, function(player, steak) {
+          steak.kill();
+        }, null, this);
+      }
+    }
+
+
     //scoreboard update
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
@@ -170,9 +247,14 @@ App.store.prototype = {
     //player item grabbing
     this.physics.arcade.overlap(player, skull, function(player, skull) {
       skull.kill();
-      App.info.gold = 0;
-      App.info.health = 1;
       App.info.score = 0;
+      App.info.health = 1;
+      App.info.gold = 0;
+      App.info.color = 0xffffff;
+      App.info.speed = 1;
+      App.info.weight = 1;
+      App.info.snow = false;
+      App.info.jump = 1;
     }, null, this);
 
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
@@ -186,24 +268,82 @@ App.store.prototype = {
     }, null, this);
 
     this.physics.arcade.overlap(player, bluepotion, function(player, bluepotion) {
-      bluepotion.kill();
-      App.info.color = 0x0000ff;
-      player.tint = 0x0000ff;
+      if (App.info.gold >= 5) {
+        bluepotion.kill();
+        App.info.color = 0x0000ff;
+        player.tint = 0x0000ff;
+        App.info.gold -= 5;
+      }  
     }, null, this);
 
     this.physics.arcade.overlap(player, redpotion, function(player, redpotion) {
-      redpotion.kill();
-      App.info.color = 0xff0000;
-      player.tint = 0xff0000;
+      if (App.info.gold >= 5) {  
+        redpotion.kill();
+        App.info.color = 0xff0000;
+        player.tint = 0xff0000;
+        App.info.gold -= 5;
+      }  
     }, null, this);
 
     this.physics.arcade.overlap(player, greenpotion, function(player, greenpotion) {
-      greenpotion.kill();
-      App.info.color = 0x00ff00;
-      player.tint = 0x00ff00;
+      if (App.info.gold >= 5) {
+        greenpotion.kill();
+        App.info.color = 0x00ff00;
+        player.tint = 0x00ff00;
+        App.info.gold -= 5;
+      }  
     }, null, this);
 
+    this.physics.arcade.overlap(player, carrot, function(player, carrot) {
+      if (App.info.gold >= 15) {
+        carrot.kill();
+        App.info.health += 30;
+        App.info.gold -= 15;
+      }  
+    }, null, this);
 
+    this.physics.arcade.overlap(player, snowman, function(player, snowman) {
+      if (App.info.gold >= 15) {
+        snowman.kill();
+        App.info.snow = true;
+        App.info.gold -= 15;
+        snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+        snow.autoScroll(20, 50);
+        snow.fixedToCamera = true;
+      }  
+    }, null, this);
+
+    this.physics.arcade.overlap(player, key, function(player, key) {
+      if (App.info.gold >= 15) {  
+        key.kill();
+        App.info.key += 1;
+        App.info.gold -= 15;
+      }  
+    }, null, this);
+
+    this.physics.arcade.overlap(player, speedhat, function(player, speedhat) {
+      if (App.info.gold >= 30) {
+        speedhat.kill();
+        App.info.speed += 1;
+        App.info.gold -= 30;
+      }  
+    }, null, this);
+
+    this.physics.arcade.overlap(player, feather, function(player, feather) {
+      if (App.info.gold >= 30) {
+        feather.kill();
+        App.info.weight = App.info.weight / 2;
+        App.info.gold -= 30;
+      }  
+    }, null, this);
+
+    this.physics.arcade.overlap(player, steak, function(player, steak) {
+      if (App.info.gold >= 30) {
+        steak.kill();
+        App.info.health = App.info.health * 2;
+        App.info.gold -= 30;
+      }  
+    }, null, this);
 
 
 
@@ -212,11 +352,11 @@ App.store.prototype = {
     player.body.velocity.x = 0;
 
     if (cursors.left.isDown) {
-      player.body.velocity.x = -150;
+      player.body.velocity.x = -150 * App.info.speed;
       player.animations.play('right');
       player.scale.setTo(-1.75, 1.75);
     } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150;
+      player.body.velocity.x = 150 * App.info.speed;
       player.animations.play('right');
       player.scale.setTo(1.75, 1.75);
     } else {
@@ -226,7 +366,7 @@ App.store.prototype = {
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
-      player.body.velocity.y = -600;
+      player.body.velocity.y = -600 * App.info.jump;
       scoreText.text = 'Score:' + App.info.score;
     }
 

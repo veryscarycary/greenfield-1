@@ -13,8 +13,8 @@ App.stage1.prototype = {
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
-    this.load.spritesheet('coin','/../../../assets/coin.png', 32, 32);
-    this.load.spritesheet('box','/../../../assets/box.png', 34, 34);
+    this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
+    this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
 
   },
 
@@ -43,11 +43,11 @@ App.stage1.prototype = {
     App.info.player = player;
     this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
-    player.body.gravity.y = 300;
+    player.body.gravity.y = 300 * App.info.weight;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
 
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '25px', fill: '#fff'});
     var style = {fill: "white"};
 
@@ -76,6 +76,16 @@ App.stage1.prototype = {
     this.physics.arcade.enable(box);
     box.body.gravity.y = 300;
 
+    //item magic
+    player.tint = App.info.color;
+
+    //snow
+    if (App.info.snow) {
+      snow = this.add.tileSprite(0, 0, 800, 600, 'snow');
+      snow.autoScroll(20, 50);
+      snow.fixedToCamera = true;
+    }
+
 
     
 
@@ -84,7 +94,7 @@ App.stage1.prototype = {
   update: function() {
 
     var context = this;
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
     // for each of the connected players, run each player's update fn
     // and set collision between all players
@@ -119,10 +129,10 @@ App.stage1.prototype = {
     
 
     if (cursors.left.isDown) {
-      player.body.velocity.x = -150;
+      player.body.velocity.x = -150 * App.info.speed;
       player.animations.play('left');
     } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150;
+      player.body.velocity.x = 150 * App.info.speed;
       player.animations.play('right');
     } else {
       player.animations.stop();
@@ -138,7 +148,7 @@ App.stage1.prototype = {
     }
     if (cursors.up.isDown && player.body.touching.down) {
       App.info.score += 10;
-      player.body.velocity.y = -300;
+      player.body.velocity.y = -300 * App.info.jump;
  
       
     }
@@ -167,6 +177,12 @@ App.info = { // this is the source of truth of info for each stage
   health: 100,
   gold: 0,
   players: [],
+  color: 0xffffff,
+  speed: 1,
+  weight: 1,
+  snow: false,
+  jump: 1,
+  difficulty: 1,
   socket: io.connect('http://localhost:3000'), // sets this player's socket
   
   //these event handlers trigger functions no matter what stage you are on

@@ -31,16 +31,16 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
 
 RemotePlayer.prototype.update = function () {
   if (this.player.x < this.lastPosition.x) {
-    this.player.play('left');
+    this.player.animations.play('left');
     // this.player.rotation = Math.PI + this.game.physics.arcade.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y);
   } else if (this.player.x > this.lastPosition.x) {
-    this.player.play('right');
+    this.player.animations.play('right');
   } else if (this.player.y < this.lastPosition.y) {
-    this.player.play('up');
+    this.player.animations.play('up');
   } else if (this.player.y < this.lastPosition.y) {
-    this.player.play('down');
+    this.player.animations.play('down');
   } else {
-    this.player.play('stand');
+    this.player.animations.play('stand');
   }
 
   this.lastPosition.x = this.player.x;

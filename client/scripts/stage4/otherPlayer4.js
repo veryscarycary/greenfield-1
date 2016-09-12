@@ -26,11 +26,17 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
 };
 
 RemotePlayer.prototype.update = function () {
-  if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y || this.player.angle !== this.lastPosition.angle) {
-    this.player.play('left');
-    // this.player.rotation = Math.PI + this.game.physics.arcade.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y);
-  } else {
+  //these update behaviors are called on your players.
+  //they are here to define the animations of your co-players
+  if (this.player.x > this.lastPosition.x) {
     this.player.play('right');
+    
+  } else if (this.player.x < this.lastPosition.x){
+
+    this.player.play('left');
+  } else {
+    this.player.animations.stop();
+    this.player.frame = 4;
   }
 
   this.lastPosition.x = this.player.x;
@@ -38,4 +44,4 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.angle = this.player.angle;
 };
 
-window.RemotePlayer;
+window.RemotePlayer = RemotePlayer;

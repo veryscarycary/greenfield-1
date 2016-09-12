@@ -258,6 +258,7 @@ App.store.prototype = {
     }, null, this);
 
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
+      witchhat.kill();
       setTimeout(function () {
         context.state.start(App.info.nextStage); 
       }, 1000);

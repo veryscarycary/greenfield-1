@@ -1,0 +1,374 @@
+App.stage4 = function(game) {
+  console.log('starting stage4');
+  App.info.game = game;
+};
+
+App.stage4.prototype = {
+  preload: function() {
+    this.load.image('sky', '/../../../assets/sky.png');
+    this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
+    this.load.image('ground', '/../../../assets/platform.png');
+    // this.load.image('star', 'assets/star.png');
+    this.load.image('star', '/../../../assets/star.png');
+    this.load.image('diamond', '/../../../assets/diamond.png');
+    this.load.script('otherPlayer4', '/scripts/stage4/otherPlayer4.js');
+  },
+
+  create: function() {
+    var height = 3000; //set world height here
+    var time = 10;
+
+    this.world.setBounds(0, 0, 800, height);
+    
+    this.physics.startSystem(Phaser.Physics.ARCADE);
+    var sky = this.add.sprite(0, 0, 'sky');
+    sky.scale.setTo(800, height);
+
+    //add platforms
+    platforms = this.add.group();
+    platforms.enableBody = true;
+    var ground = platforms.create(0, this.world.height - 64, 'ground');
+    ground.scale.setTo(2, 2);
+    ground.body.immovable = true;
+    //create ledges
+    // var ledge = platforms.create(400, height - 240, 'ground');
+    // ledge.body.immovable = true;
+
+    //make random ledges???
+    // for (var i = height - 400; i > 0; i = i - (Math.floor(Math.random() * 120) + 180)) {
+    //   this.makeLedge(i);
+    // }
+
+    for (var i = 55; i < 800; i += 100) {
+      this.makeLedge(i, 2760, 0.1); 
+    }
+
+    for (var i = 0; i < 770; i += 100) {
+      this.makeLedge(i, 2620, 0.1);
+    }
+
+    this.makeLedge(430, 2430, 0.2);
+    this.makeLedge(-20, 2430, 0.4);
+    this.makeLedge(750, 2290, 0.2); //put star on this ledge
+    this.makeLedge(750, 2000, 0.2); 
+    this.makeLedge(0, 2070, 0.1); 
+    this.makeLedge(220, 2250, 0.3);
+    this.makeLedge(380, 2090, 0.4); //reach or not?
+    this.makeLedge(100, 1900, 0.3);
+
+    this.makeLedge(350, 1750, 0.3);
+    this.makeLedge(600, 1750, 0.3);
+    this.makeLedge(-30, 1700, 0.3); //TODO: put star here?
+    this.makeLedge(200, 1550, 0.3);
+    this.makeLedge(500, 1550, 0.3);
+    this.makeLedge(400, 1340, 0.15); //rainbowStar here
+    this.makeLedge(0, 1360, 0.3);
+    this.makeLedge(680, 1360, 0.3);
+    this.makeLedge(-5, 1160, 0.15);
+    this.makeLedge(760, 1160, 0.15);
+
+    this.makeLedge(400, 930, 0.1);
+    this.makeLedge(200, 990, 0.1); 
+    this.makeLedge(600, 990, 0.1);
+
+    this.makeLedge(0, 960, 0.2); //diamond?
+    this.makeLedge(750, 960, 0.2);
+
+    this.makeLedge(600, 740, 0.1); //?
+    this.makeLedge(200, 740, 0.1); //?
+
+    this.makeLedge(0, 540, 0.3); //
+    this.makeLedge(700, 540, 0.3); //
+
+    this.makeLedge(380, 290, 0.1); //main prize
+    this.makeLedge(0, 380, 0.1);
+    this.makeLedge(760, 380, 0.1);
+    this.makeLedge(0, 240, 0.1);
+    this.makeLedge(760, 240, 0.1);
+
+    this.makeLedge(100, 70, 0.5); //top ledges
+    this.makeLedge(500, 70, 0.5);
+
+
+    special = false;
+    //player = this.add.sprite(32, this.world.height - 150, 'dude');
+    player = this.add.sprite(32, 0, 'dude');
+    this.physics.arcade.enable(player);
+    player.body.collideWorldBounds = true;
+    player.body.gravity.y = 300;
+    player.animations.add('left', [0, 1, 2, 3], 10, true);
+    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    
+    //add stars
+    stars = this.add.group();
+    stars.enableBody = true;
+
+    this.makeStars(500);
+
+    //add rainbow stars
+    rainbowStars = this.add.group();
+    rainbowStars.enableBody = true;
+
+    this.makeRainbowStar(750, 2200);
+    this.makeRainbowStar(400, 1300);
+
+    //add diamonds
+    diamonds = this.add.group();
+    diamonds.enableBody = true;
+
+    this.makeDiamond(30, 930);
+    this.makeDiamond(760, 930);
+
+    this.makeDiamond(300, 910, true);
+    this.makeDiamond(500, 910, true);
+
+
+    //randomize diamonds:
+    for (var i = 0; i < 30; i++) {
+      var randX = Math.floor(Math.random() * 780);
+      var randY = Math.floor(Math.random() * 2920);
+      this.makeDiamond(randX, randY, true);
+    }
+
+    // make diamonds disappear and then reappear in a random position
+    // setInterval(function() {
+    //   diamonds.destroy();
+    //   diamonds = this.add.group();
+    //   diamonds.enableBody = true;
+
+    //   this.makeDiamond(30, 930);
+    //   this.makeDiamond(760, 930);
+
+    //   this.makeDiamond(300, 910, true);
+    //   this.makeDiamond(500, 910, true);
+
+
+    //   for (var i = 0; i < 30; i++) {
+    //     var randX = Math.floor(Math.random() * 780);
+    //     var randY = Math.floor(Math.random() * 2920);
+    //     this.makeDiamond(randX, randY, true);
+    //   }
+    // }, 2000);
+
+    //make large prize diamond at top
+    prizes = this.add.group();
+    prizes.enableBody = true;
+    var prize = prizes.create(350, 150, 'diamond');
+    prize.scale.setTo(3, 3);
+    prize.body.gravity.y = 300;
+    //prize.body.bounce.y = 0.7 + Math.random() * 0.2;  
+
+    scoreText = this.add.text(16, 16, 'Score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
+    scoreText.fixedToCamera = true;
+    timeText = this.add.text(16, 50, 'Time: ' + time, {fontSize: '32px', fill: '#fff'});
+    timeText.fixedToCamera = true;
+
+    this.camera.follow(player);
+    //tint player
+    //player.tint = 0xffff00; //gold
+    //player.tint = 0x00FF00; //green
+    //player.tint = 0xFF0000; //red
+    //player.tint = 0x00FFFF; //blue
+    //player.tint = 0xAA00FF; //purple
+    //player.tint = 0x000000; //all black
+    //player.tint = 0xFFFFFF; //remove tint
+
+    //ground.tint = 0x2C5800;
+    ground.tint = 0xE6FFB7;
+
+    //this is important to bring in your players!!
+    App.info.stageConnect();
+
+
+  },
+
+  update: function() {
+
+    //this function updates each player each frame- KEEP!!!
+    for ( var i = 0; i < App.info.players.length; i ++) {
+      if (App.info.players[i].alive) { 
+        App.info.players[i].update();
+        this.physics.arcade.collide(player, App.info.players[i].player);
+      }
+    }
+
+    // setInterval(function() {
+    //   time -= 1;
+    //   timeText.text = 'Time: ' + time;
+    // }, 1000);
+
+    // controls
+    var cursors = this.input.keyboard.createCursorKeys();
+    player.body.velocity.x = 0;
+    this.physics.arcade.collide(player, platforms);
+    // collide with stars/diamonds
+    this.physics.arcade.collide(stars, platforms);
+    this.physics.arcade.collide(rainbowStars, platforms);
+    this.physics.arcade.collide(diamonds, platforms);
+    this.physics.arcade.collide(prizes, platforms);
+
+    // Checks to see if the player overlaps with any of the stars/diamonds, if he does call the collect function
+    // this.physics.arcade.overlap(player, stars, this.collectStar, null, this);
+    // this.physics.arcade.overlap(player, rainbowStars, this.collectRainbowStar, null, this);
+    this.physics.arcade.overlap(player, stars, function(player, star) {
+      this.collect(star, 1, false);
+    }.bind(this), null, this);
+    this.physics.arcade.overlap(player, rainbowStars, function(player, rainbowStar) {
+      this.collect(rainbowStar, 5, true);
+    }.bind(this), null, this);
+    this.physics.arcade.overlap(player, diamonds, function(player, diamond) {
+      this.collect(diamond, 25, false);
+    }.bind(this), null, this);
+    this.physics.arcade.overlap(player, prizes, function(player, prize) {
+      this.collect(prize, 100, false);
+    }.bind(this), null, this);
+
+    if (!special) {
+      if (cursors.left.isDown) {
+        player.body.velocity.x = -150;
+        player.animations.play('left');
+      } else if (cursors.right.isDown) {
+        player.body.velocity.x = 150;
+        player.animations.play('right');
+      } else {
+        player.animations.stop();
+        player.frame = 4;
+      }
+      // if (cursors.up.isDown) {
+      //   App.info.score += 10;
+      //   scoreText.text = 'Score:' + App.info.score;
+      // }
+    } else {
+      if (cursors.left.isDown) {
+        //  Move to the left        
+        player.body.velocity.x = -400;
+        player.animations.play('left');
+      } else if (cursors.right.isDown) {
+          //  Move to the right
+        player.body.velocity.x = 400;
+        player.animations.play('right');
+      } else {
+          //  Stand still
+        player.animations.stop();
+        player.frame = 4;
+      }    
+    }
+
+
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down) {
+      player.body.velocity.y = -350;
+    }
+
+
+    //tells the server your location each frame- KEEP!!!
+    App.info.socket.emit('move player', {
+      x: player.x,
+      y: player.y,
+      angle: player.angle
+    });
+
+  },
+  makeLedge: function(X, Y, scaleX) {
+    // var rand = Math.floor(Math.random() * 820);
+    scaleX = scaleX || 1;
+    ledge = platforms.create(X, Y, 'ground');
+    // ledge.scale.setTo(Math.random(), 1);
+    ledge.scale.setTo(scaleX, 1);
+    ledge.body.immovable = true;
+  },
+  makeRainbow: function(sprite) {
+
+    var rainbow = setInterval(function() {
+      var colors = ['0xffff00', '0x00FF00', '0xFF0000', 
+                    '0x00FFFF', '0xAA00FF', '0xFFFFFF', 
+                    '0xFF00DD', '0x000FFF'];
+      var rand = Math.floor(Math.random() * colors.length);
+      sprite.tint = colors[rand];
+    }, 100);
+
+    return rainbow;
+  },
+  collect: function(item, points, rainbow) {
+    item.kill();
+    if (rainbow) {
+      this.rainbowPower(10000);
+    }
+    if (special) {
+      App.info.score += (points + 3); //each star worth 3 extra points during special
+    } else {
+      App.info.score += points;
+    }
+    scoreText.text = 'Score: ' + App.info.score;
+  },
+  rainbowPower: function(timeout) {
+    special = true; //turn on special: jumping powers and each start worth more
+
+    var rainbow = this.makeRainbow(player);
+    player.scale.setTo(2, 2);
+    setTimeout(function() {
+      clearInterval(rainbow);
+      player.tint = 0xFFFFFF; //remove tint
+      player.scale.setTo(1, 1);
+      special = false;
+    }, timeout);
+  },
+  makeStars: function(num) {
+    for (var i = 0; i < num; i++) {
+      var randX = Math.floor(Math.random() * 780);
+      var randY = Math.floor(Math.random() * 2920);
+      var star = stars.create(randX, randY, 'star');
+      star.body.gravity.y = 300;
+      star.body.bounce.y = 0.7 + Math.random() * 0.2;   
+    }
+  },
+  makeRainbowStar: function(X, Y) {
+    rainbowStar = rainbowStars.create(X, Y, 'star');
+    rainbowStar.scale.setTo(2, 2);
+    rainbowStar.body.gravity.y = 300;
+    rainbowStar.body.bounce.y = 0.7 + Math.random() * 0.2;
+    this.makeRainbow(rainbowStar);
+  },
+  makeDiamond: function(X, Y, float) {
+    float = float || false;
+    diamond = diamonds.create(X, Y, 'diamond');
+    //diamond.scale.setTo(1, 1);
+    if (!float) {
+      diamond.body.gravity.y = 300;
+      diamond.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }
+    //this.makeRainbow(diamond);
+  }
+};  
+
+//make platforms
+//make more stars
+//make a blinky star
+//collect blinky star changes player's color
+//collect blinky star changes player's velocity
+//collect bliny star changes player's star points
+
+//make more platforms
+//make canvas larger... vertically
+//make more platforms
+//add diamonds near top
+
+//black stars will turn you black and prevent you from being able to collect for 5 seconds
+//change special gravity
+//fix score to display at the top
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

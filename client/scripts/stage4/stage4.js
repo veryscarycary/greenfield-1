@@ -11,6 +11,8 @@ App.stage4.prototype = {
     // this.load.image('star', 'assets/star.png');
     this.load.image('star', '/../../../assets/star.png');
     this.load.image('diamond', '/../../../assets/diamond.png');
+    // this.load.image('skull', '/../../../assets/skull.png');
+    this.load.image('skull', '/../../../assets/greenpotion.png');
     this.load.script('otherPlayer4', '/scripts/stage4/otherPlayer4.js');
   },
 
@@ -20,6 +22,7 @@ App.stage4.prototype = {
 
     var height = 3000; //set world height here
     var time = 10;
+    poison = false;
 
     this.world.setBounds(0, 0, 800, height);
     
@@ -94,8 +97,8 @@ App.stage4.prototype = {
 
 
     special = false;
-    //player = this.add.sprite(32, this.world.height - 150, 'dude');
-    player = this.add.sprite(32, 0, 'dude');
+    player = this.add.sprite(32, this.world.height - 150, 'dude');
+    //player = this.add.sprite(32, 0, 'dude');
     this.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     player.body.gravity.y = 300;
@@ -161,10 +164,21 @@ App.stage4.prototype = {
     prize.body.gravity.y = 300;
     //prize.body.bounce.y = 0.7 + Math.random() * 0.2;  
 
-    scoreText = this.add.text(16, 16, 'Score: ' + App.info.score, {fontSize: '32px', fill: '#fff'});
+    skulls = this.add.group();
+    skulls.enableBody = true;
+
+    for (var i = 0; i < 20; i++) {
+      var randX = Math.floor(Math.random() * 780);
+      var randY = Math.floor(Math.random() * 2920);
+      this.makeSkull(randX, randY, true);
+    }
+
+
+
+    scoreText = this.add.text(16, 16, 'Score: ' + App.info.score, {fontSize: '25px', fill: '#fff'});
     scoreText.fixedToCamera = true;
-    timeText = this.add.text(16, 50, 'Time: ' + time, {fontSize: '32px', fill: '#fff'});
-    timeText.fixedToCamera = true;
+    // timeText = this.add.text(16, 50, 'Time: ' + time, {fontSize: '32px', fill: '#fff'});
+    // timeText.fixedToCamera = true;
 
     this.camera.follow(player);
     //tint player
@@ -207,6 +221,12 @@ App.stage4.prototype = {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.overlap(App.info.players[i].player, rainbowStar, function(otherPlayer, rainbowStar) {
+          this.collect(rainbowStar, 5, true, otherPlayer);
+        }, null, this);
+        this.physics.arcade.overlap(App.info.players[i].player, skull, function(otherPlayer, skull) {
+          this.collectPoison(skull, otherPlayer);
+        }, null, this);
       }
     }
 
@@ -224,21 +244,25 @@ App.stage4.prototype = {
     this.physics.arcade.collide(rainbowStars, platforms);
     this.physics.arcade.collide(diamonds, platforms);
     this.physics.arcade.collide(prizes, platforms);
+    this.physics.arcade.collide(skulls, platforms);
 
     // Checks to see if the player overlaps with any of the stars/diamonds, if he does call the collect function
     // this.physics.arcade.overlap(player, stars, this.collectStar, null, this);
     // this.physics.arcade.overlap(player, rainbowStars, this.collectRainbowStar, null, this);
     this.physics.arcade.overlap(player, stars, function(player, star) {
-      this.collect(star, 1, false);
-    }.bind(this), null, this);
+      this.collect(star, 1, false, player);
+    }.bind(this), this.checkPoison, this);
     this.physics.arcade.overlap(player, rainbowStars, function(player, rainbowStar) {
-      this.collect(rainbowStar, 5, true);
+      this.collect(rainbowStar, 5, true, player);
     }.bind(this), null, this);
     this.physics.arcade.overlap(player, diamonds, function(player, diamond) {
-      this.collect(diamond, 25, false);
-    }.bind(this), null, this);
+      this.collect(diamond, 25, false, player, 'diamond');
+    }.bind(this), this.checkPoison, this);
     this.physics.arcade.overlap(player, prizes, function(player, prize) {
-      this.collect(prize, 100, false);
+      this.collect(prize, 100, false, player);
+    }.bind(this), this.checkPoison, this);
+    this.physics.arcade.overlap(player, skulls, function(player, skull) {
+      this.collectPoison(skull, player);
     }.bind(this), null, this);
 
     if (!special) {
@@ -277,7 +301,9 @@ App.stage4.prototype = {
     if (cursors.up.isDown && player.body.touching.down) {
       player.body.velocity.y = -350;
     }
-
+    //update scoreboard
+    var updatedScore = ('Score: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
+    scoreText.text = updatedScore;
 
     //tells the server your location each frame- KEEP!!!
     App.info.socket.emit('move player', {
@@ -307,10 +333,11 @@ App.stage4.prototype = {
 
     return rainbow;
   },
-  collect: function(item, points, rainbow) {
+  collect: function(item, points, rainbow, player, itemName) {
+    itemName = itemName || 'other';
     item.kill();
     if (rainbow) {
-      this.rainbowPower(10000);
+      this.rainbowPower(10000, player); //TODO...
     }
     if (special) {
       App.info.score += (points + 3); //each star worth 3 extra points during special
@@ -318,12 +345,39 @@ App.stage4.prototype = {
       App.info.score += points;
     }
     scoreText.text = 'Score: ' + App.info.score;
+
+    if (itemName === 'diamond') {
+      App.info.gold++;
+    }
   },
-  rainbowPower: function(timeout) {
+  collectPoison: function(item, player) {
+    item.kill();
+    poison = true;
+    App.info.health -= 5;
+    //console.log("poison is collected");
+    player.tint = '0x000000';
+    setTimeout(function() {
+      player.tint = '0xFFFFFF';
+      poison = false;
+    }, 3000);
+  },
+  checkPoison: function() {
+    if (poison && !special) {
+      //console.log("poison is on");
+      return false;
+    } else {
+      //console.log("poison is off");
+      return true;
+    }
+  },
+  rainbowPower: function(timeout, player) {
     special = true; //turn on special: jumping powers and each start worth more
 
     var rainbow = this.makeRainbow(player);
     player.scale.setTo(2, 2);
+    player.y = player.y - 10;
+    player.y = player.y + 15;
+    player.y = player.y - 10;
     setTimeout(function() {
       clearInterval(rainbow);
       player.tint = 0xFFFFFF; //remove tint
@@ -331,6 +385,18 @@ App.stage4.prototype = {
       special = false;
     }, timeout);
   },
+  // rainbowPowerOther: function(timeout, otherPlayer) {
+  //   specialOther = true; //turn on special: jumping powers and each start worth more
+
+  //   var rainbow = this.makeRainbow(otherPlayer);
+  //   otherPlayer.scale.setTo(2, 2);
+  //   setTimeout(function() {
+  //     clearInterval(rainbow);
+  //     otherPlayer.tint = 0xFFFFFF; //remove tint
+  //     otherPlayer.scale.setTo(1, 1);
+  //     specialOther = false;
+  //   }, timeout);
+  // },
   makeStars: function(num) {
     for (var i = 0; i < num; i++) {
       var randX = Math.floor(Math.random() * 780);
@@ -354,6 +420,18 @@ App.stage4.prototype = {
     if (!float) {
       diamond.body.gravity.y = 300;
       diamond.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }
+    //this.makeRainbow(diamond);
+  },
+  makeSkull: function(X, Y, float) {
+    float = float || false;
+    skull = skulls.create(X, Y, 'skull');
+    skull.scale.setTo(0.8, 0.8);
+    skull.tint = '0x581B47';
+    //diamond.scale.setTo(1, 1);
+    if (!float) {
+      skull.body.gravity.y = 300;
+      skull.body.bounce.y = 0.7 + Math.random() * 0.2;
     }
     //this.makeRainbow(diamond);
   }

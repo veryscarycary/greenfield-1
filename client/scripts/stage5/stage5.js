@@ -21,6 +21,7 @@ App.stage5.prototype = {
     this.physics.startSystem(Phaser.Physics.P2JS);
 
     this.physics.p2.setImpactEvents(true);
+    this.world.setBounds(0, 0, 800, 600);
     
     //set the degree of bounce
     this.physics.p2.restitution = 0.5;
@@ -41,7 +42,7 @@ App.stage5.prototype = {
     ghost.body.setCircle(15);  
     ghost.body.setCollisionGroup(App.info.ghostGroup);
     ghost.body.collides([App.info.playerGroup, App.info.ghostGroup, App.info.cherryGroup]);
-
+    ghost.body.collideWorldBounds = true;
     }
 
     // create 3 cherries at start
@@ -52,7 +53,7 @@ App.stage5.prototype = {
     cherry.body.setCircle(15);  
     cherry.body.setCollisionGroup(App.info.cherryGroup);
     cherry.body.collides([App.info.playerGroup, App.info.ghostGroup, App.info.cherryGroup]);
-
+    cherry.body.collideWorldBounds = true;
     }
 
     // create pacman player on screen 
@@ -68,7 +69,7 @@ App.stage5.prototype = {
     player.body.collides(App.info.cherryGroup, this.hitCherry, this);
     player.body.createBodyCallback(this.world, this.hit, this);
 
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '24px', fill: '#fff'});
 
     var text = "In PACMAN-SPACE, \n beware of GHOSTS";
@@ -113,9 +114,9 @@ App.stage5.prototype = {
     ghost.body.setCircle(15);  
     ghost.body.setCollisionGroup(App.info.ghostGroup);
     ghost.body.collides([App.info.playerGroup, App.info.ghostGroup, App.info.cherryGroup]);
-    
+    ghost.body.collideWorldBounds = true;
     scoreText.destroy();
-    updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '24px', fill: '#fff'});
   },
 
@@ -134,9 +135,9 @@ App.stage5.prototype = {
     cherry.body.setCircle(15);  
     cherry.body.setCollisionGroup(App.info.cherryGroup);
     cherry.body.collides([App.info.playerGroup, App.info.ghostGroup, App.info.cherryGroup]);
-    
+    cherry.body.collideWorldBounds = true;
     scoreText.destroy();
-    updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '24px', fill: '#fff'});
   },
 
@@ -171,12 +172,12 @@ App.stage5.prototype = {
       player.body.thrust(400 * App.info.speed);
       App.info.score += 1;
 
-      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
       scoreText.text = updatedScore;
     } else if (cursors.down.isDown) {
       player.body.reverse(400 * App.info.speed);
       App.info.score += 1;
-      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+      updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
       scoreText.text = updatedScore;
 
     }

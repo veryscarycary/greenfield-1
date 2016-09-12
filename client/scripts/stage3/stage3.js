@@ -146,7 +146,7 @@ App.stage3.prototype = {
 
 
     var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
-    timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
+    timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
     timerAndScoreText.fixedToCamera= true;
 
     var style = {fill: "white"};
@@ -190,7 +190,7 @@ App.stage3.prototype = {
     smokes.createMultiple(30, 'splat');
     smokes.forEach(setupSmoke, this);
 
-    App.info.socket.emit('startTimer');
+    // App.info.socket.emit('startTimer');
 
 
     //item magic
@@ -219,16 +219,22 @@ App.stage3.prototype = {
       App.info.timer = serverTimer;
     });
 
-    App.info.socket.on('startNextStage', function() { startNextStage(context); });
+    //timer
+    this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.state.start('store');
+    }, this);
+
+    // App.info.socket.on('startNextStage', function() { startNextStage(context); });
 
 
-    if ((App.info.timer % 60) < 10) {
-      var seconds = '0' + (App.info.timer % 60);
-    } else {
-      var seconds = (App.info.timer % 60);
-    }
-    var updatedTimerAndScore = (Math.floor(App.info.timer / 60) + ':' + seconds);
-    timerAndScoreText.text = (updatedTimerAndScore + '\nScore: ' + App.info.score + '\nHealth: ' + App.info.health + '\nGold: ' + App.info.gold);
+    // if ((App.info.timer % 60) < 10) {
+    //   var seconds = '0' + (App.info.timer % 60);
+    // } else {
+    //   var seconds = (App.info.timer % 60);
+    // }
+    var seconds = Math.floor(this.time.events.duration / 1000);
+    var updatedTimerAndScore = (0 + ':' + seconds);
+    timerAndScoreText.text = (updatedTimerAndScore + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
 
     ////////// INTERPLAYER COLLISIONS
 
@@ -240,7 +246,7 @@ App.stage3.prototype = {
         this.physics.arcade.overlap(App.info.players[i].player, coins, function(player, coin) {
           coin.kill();
         }, null, this);
-        this.physics.arcade.collide(App.info.players[i].player, box);
+        this.physics.arcade.collide(App.info.players[i].player, boxes);
 
         this.physics.arcade.overlap(arrows, App.info.players[i].player, collisionHandlerEnemy, null, this);
         this.physics.arcade.overlap(arrows, player, collisionHandlerPlayer, null, this);
@@ -251,7 +257,7 @@ App.stage3.prototype = {
     }
 
     // player collisions
-    this.physics.arcade.collide(player, box);
+    this.physics.arcade.collide(player, boxes);
     this.physics.arcade.overlap(player, coins, function(player, coin) {
       coin.kill();
       App.info.gold += 1;

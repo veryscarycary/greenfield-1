@@ -13,6 +13,7 @@ App.stage4.prototype = {
     this.load.image('diamond', '/../../../assets/diamond.png');
     // this.load.image('skull', '/../../../assets/skull.png');
     this.load.image('skull', '/../../../assets/greenpotion.png');
+    this.load.image('heart', '/../../../assets/heart.png');
     this.load.script('otherPlayer4', '/scripts/stage4/otherPlayer4.js');
   },
 
@@ -174,7 +175,14 @@ App.stage4.prototype = {
       this.makeSkull(randX, randY, true);
     }
 
+    hearts = this.add.group();
+    hearts.enableBody = true;
 
+    for (var i = 0; i < 10; i++) {
+      var randX = Math.floor(Math.random() * 780);
+      var randY = Math.floor(Math.random() * 2920);
+      this.makeHeart(randX, randY);
+    }
 
     scoreText = this.add.text(16, 16, 'Score: ' + App.info.score, {fontSize: '25px', fill: '#fff'});
     scoreText.fixedToCamera = true;
@@ -229,9 +237,9 @@ App.stage4.prototype = {
           this.collectPoison(skull, otherPlayer);
         }, null, this);
       }
-      if (App.info.players[i].player.info.health <= 0) {
-        this.dead(App.info.players[i].player);
-      }
+      // if (App.info.players[i].player.info.health <= 0) {
+      //   this.dead(App.info.players[i].player);
+      // }
     }
 
     // setInterval(function() {
@@ -249,29 +257,65 @@ App.stage4.prototype = {
     this.physics.arcade.collide(diamonds, platforms);
     this.physics.arcade.collide(prizes, platforms);
     this.physics.arcade.collide(skulls, platforms);
+    this.physics.arcade.collide(hearts, platforms);
 
     // Checks to see if the player overlaps with any of the stars/diamonds, if he does call the collect function
     // this.physics.arcade.overlap(player, stars, this.collectStar, null, this);
     // this.physics.arcade.overlap(player, rainbowStars, this.collectRainbowStar, null, this);
+
+    //collect stars
     this.physics.arcade.overlap(player, stars, function(player, star) {
       this.collect(star, 1, false, player);
-    }.bind(this), this.checkPoison, this);
+    }.bind(this), function() {
+      return this.checkPoison(false); 
+    }.bind(this), this);
+
+    //collect rainbowStars
     this.physics.arcade.overlap(player, rainbowStars, function(player, rainbowStar) {
       this.collect(rainbowStar, 5, true, player, 'rainbow');
     }.bind(this), function() {
-      this.checkPoison(true); //allow this item to be picked up 
-    }, this); //checkPoison here should be ok
+      if (dead) {
+        return false;
+      } else {
+        return true;
+      }
+    }.bind(this), this); //checkPoison here should be ok
+
+    //collect diamonds
     this.physics.arcade.overlap(player, diamonds, function(player, diamond) {
       this.collect(diamond, 25, false, player, 'diamond');
-    }.bind(this), this.checkPoison, this);
+    }.bind(this), function() {
+      return this.checkPoison(false);
+    }.bind(this), this);
+
+    //collect prizes
     this.physics.arcade.overlap(player, prizes, function(player, prize) {
       this.collect(prize, 100, false, player);
-    }.bind(this), this.checkPoison, this);
+    }.bind(this), function() {
+      return this.checkPoison(false);
+    }.bind(this), this);
+
+    //collect poison
     this.physics.arcade.overlap(player, skulls, function(player, skull) {
       this.collectPoison(skull, player);
     }.bind(this), function() {
-      this.checkPoison(true);
-    }, this);
+      if (special || dead) {
+        return false;
+      } else {
+        return true;
+      }
+    }.bind(this), this);
+
+    //collect hearts
+    this.physics.arcade.overlap(player, hearts, function(player, heart) {
+      this.collectHeart(heart, player);
+    }.bind(this), function() {
+      if (dead || poison) {
+        return false;
+      } else {
+        return true;
+      }
+    }.bind(this), this);
     // this.physics.arcade.overlap(player, skulls, function(player, skull) {
     //   this.collectPoison(skull, player);
     // }.bind(this), this.checkPoison, this);
@@ -389,23 +433,36 @@ App.stage4.prototype = {
       App.info.gold++;
     }
   },
+  collectHeart: function(item, player) {
+    item.kill();
+    App.info.health += 10;
+    //console.log("poison is collected");
+    if (poison) {
+      player.tint = '0xffffff';
+    }
+  },
   collectPoison: function(item, player) {
     item.kill();
     poison = true;
     App.info.health -= (5 * App.info.difficulty);
-    //console.log("poison is collected");
+    //console.log('poison is collected: ', poison);
     player.tint = '0x000000';
     setTimeout(function() {
       player.tint = '0xFFFFFF';
       poison = false;
     }, 3000);
   },
-  checkPoison: function(allow) {
-    allow = allow || false;
+  checkPoison: function(allow) { 
+    //allow means allow to be collected
+    //console.log('inside check poison: ', poison);
+
     if (App.info.health <= 0) {
       return false;
     }
-    if ((poison && !special) || allow) {
+    if (allow) {
+      return true;
+    }
+    if ((poison && !special)) {
       //console.log("poison is on");
       return false;
     } else {
@@ -475,6 +532,18 @@ App.stage4.prototype = {
     if (!float) {
       skull.body.gravity.y = 300;
       skull.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }
+    //this.makeRainbow(diamond);
+  },
+  makeHeart: function(X, Y, float) {
+    float = float || false;
+    heart = hearts.create(X, Y, 'heart');
+    heart.scale.setTo(0.1, 0.1);
+    //heart.tint = '0x6D4161';
+    //diamond.scale.setTo(1, 1);
+    if (!float) {
+      heart.body.gravity.y = 300;
+      heart.body.bounce.y = 0.7 + Math.random() * 0.2;
     }
     //this.makeRainbow(diamond);
   },

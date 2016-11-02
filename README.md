@@ -1,6 +1,6 @@
 # Greenfield/Frenemies
 
-# Team Iriscent Flume
+Team Iriscent Flume
 
 # Table of Contents
 

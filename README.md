@@ -1,8 +1,8 @@
 # Greenfield/Frenemies
 
-Team Iriscent Flume
+# Team Iriscent Flume
 
-Table of Contents
+# Table of Contents
 
   Usage
   Requirements
@@ -13,7 +13,7 @@ Table of Contents
   Contributing
   Usage
 
-Requirements:
+# Requirements:
 
     body-parser: ^1.15.2
     express: ^4.14.0
@@ -23,14 +23,14 @@ Requirements:
     passport-facebook: ^2.1.1
     socket.io: ^1.4.8
 
-  Download:
+# Download:
   
     In Terminal, from within desired parent directory:
   
       git clone https://github.com/iridescent-flume/greenfield.git
       cd <clonedrepo>
 
-  Installing Dependencies
+# Installing Dependencies
 
     In Terminal, from within the root directory:
 
@@ -43,11 +43,11 @@ Requirements:
       In Terminal in server folder, node index.js
       Visit http://localhost:3000 and Voila!
 
-Roadmap
+# Roadmap
 
   Contact Iridescent Flume for access to extended roadmap
 
-Contributing
+# Contributing
 
   Patrick Hartley: Back-end
   Cary Meskell: Back-end

@@ -27,7 +27,7 @@ Requirements:
   
     In Terminal, from within desired parent directory:
   
-      git clone <this_repos_git_address>
+      git clone https://github.com/iridescent-flume/greenfield.git
       cd <clonedrepo>
 
   Installing Dependencies

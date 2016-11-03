@@ -1,2 +1,2 @@
 // change depending on local or dev env; localhost or ....
-module.exports = '107.170.214.125';
+module.exports = '54.153.122.199';

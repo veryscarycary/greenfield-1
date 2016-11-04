@@ -2,8 +2,6 @@
 
 Team Iriscent Flume
 
-![alt tag](http://www.carymeskell.com/portfolio/frenemiesThumb.png)
-
 Table of Contents
 
   Usage
@@ -55,3 +53,5 @@ Contributing
   Cary Meskell: Back-end
   Josephine Eng: Front-end
   Michael Chow: Front-end
+  
+  ![alt tag](http://www.carymeskell.com/portfolio/frenemiesPortfolio.jpg)

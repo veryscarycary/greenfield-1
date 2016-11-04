@@ -2,7 +2,7 @@
 
 Team Iriscent Flume
 
-![alt tag](http://www.carymeskell.com/portfolio/frenemiesPortfolio.jpg)
+![alt tag](http://www.carymeskell.com/portfolio/frenemiesThumb.png)
 
 Table of Contents
 

@@ -60,4 +60,4 @@
 
   Contact Iridescent Flume for access to extended roadmap
   
-  ![alt tag](http://imgur.com/qN8a55n)
+  ![alt tag](http://i.imgur.com/qN8a55n.jpg)

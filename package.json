@@ -17,7 +17,7 @@
     "url": "https://github.com/patrickliamhartley/Greenfield/issues"
   },
   "engines": {
-    "node": "8.x"
+    "node": "8.9.1"
   },
   "homepage": "https://github.com/patrickliamhartley/Greenfield#readme",
   "dependencies": {

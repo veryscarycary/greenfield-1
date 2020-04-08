@@ -16,6 +16,9 @@
   "bugs": {
     "url": "https://github.com/patrickliamhartley/Greenfield/issues"
   },
+  "engines": {
+    "node": "8.x"
+  },
   "homepage": "https://github.com/patrickliamhartley/Greenfield#readme",
   "dependencies": {
     "body-parser": "^1.15.2",

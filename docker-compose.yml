@@ -1,0 +1,33 @@
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongo:4.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - my_network
+    healthcheck:
+      test: "mongo --eval 'db.stats()' localhost:27017/greenfield"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  frenemies:
+    container_name: frenemies
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - my_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  my_network:
+    driver: bridge

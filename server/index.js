@@ -8,6 +8,7 @@ var io = require('socket.io')(http);
 var passport = require('passport');
 var session = require('express-session');
 var ip = require('./config/env.js');
+var port = process.env.PORT || 3000;
 
 require('./config/passport')(passport);
 // var authRoutes = require('./db/authRoutes');
@@ -284,4 +285,6 @@ var findPlayer = function (id) {
   return false;
 };
 
-http.listen(process.env.PORT || 3000, ip);
+http.listen(port, ip, function() {
+  console.log(`Listening on port ${port}`);
+});

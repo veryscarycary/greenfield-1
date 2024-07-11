@@ -55,6 +55,14 @@
       In Terminal, mongod
       In Terminal in server folder, node index.js
       Visit http://localhost:3000 and Voila!
+
+## Docker
+
+```
+  docker compose up --build
+```
+
+Visit http://localhost:3000 and Voila!
       
 ## Roadmap
 

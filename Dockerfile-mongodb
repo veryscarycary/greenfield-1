@@ -1,0 +1,14 @@
+# Use the official MongoDB image as a base
+FROM mongo:4.0
+
+# Set the health check command
+HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD mongo --eval 'db.stats()' localhost:27017/greenfield
+
+# Expose the default MongoDB port
+EXPOSE 27017
+
+# Set the entrypoint to run MongoDB
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# Set the default command to run MongoDB
+CMD ["mongod"]

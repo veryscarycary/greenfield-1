@@ -1,18 +1,13 @@
 services:
   mongodb:
     container_name: mongodb
-    image: mongo:4.0
+    image: mongo:7.0
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
       - my_network
-    healthcheck:
-      test: "mongo --eval 'db.stats()' localhost:27017/greenfield"
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
   frenemies:
     container_name: frenemies
@@ -20,10 +15,11 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      mongodb:
-        condition: service_healthy
+      - mongodb
     networks:
       - my_network
+    environment:
+      DOCKER_COMPOSE: true
 
 volumes:
   mongodb_data:

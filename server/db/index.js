@@ -3,9 +3,9 @@ var mongoose = require('mongoose');
 var hostname =
   process.env.ENVIRONMENT === 'production'
     ? process.env.MONGO_HOST
-    : process.env.DOCKER
+    : process.env.DOCKER_COMPOSE
     ? 'mongodb'
-    : 'localhost';
+    : 'host.docker.internal';
 var mongoUrl = `mongodb://${hostname}/greenfield`;
 
 console.log('MONGOHOST: ' + process.env.MONGO_HOST);
@@ -14,6 +14,9 @@ console.log('hostname: ' + hostname);
 var db = mongoose
   .connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Successfully connected to MongoDB'))
-  .catch((err) => console.error('Connection error:', err));
+  .catch((err) => {
+    console.error('Connection error:', err);
+    throw new Error("Couldn't connect to MongoDB Database");
+  });
 
 module.exports = db;

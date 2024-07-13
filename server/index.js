@@ -286,5 +286,8 @@ var findPlayer = function (id) {
 };
 
 http.listen(port, ip, function() {
-  console.log(`Listening on port ${port}`);
+  console.log(`Listening on http://${ip}:${port}`);
 });
+
+// server isn't dying when CTRL-C is pressed for some reason
+process.on('SIGINT', () => process.exit(1));

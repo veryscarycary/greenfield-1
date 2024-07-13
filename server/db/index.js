@@ -12,6 +12,8 @@ var password = process.env.MONGO_PASSWORD || '';
 var dbName = 'greenfield';
 var mongoUrl = `mongodb://${username}${password && `:${password}`}${username && '@'}${hostname}:${port}/${dbName}`;
 
+console.log('MONGOURL ' + mongoUrl);
+
 console.log('MONGOHOST: ' + process.env.MONGO_HOST);
 console.log('hostname: ' + hostname);
 // Connect Mongoose to our local MongoDB via URI specified above and export it below

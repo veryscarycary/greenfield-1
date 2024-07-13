@@ -1,16 +1,19 @@
 var mongoose = require('mongoose');
 
 var hostname =
-  process.env.ENVIRONMENT === 'production'
-    ? process.env.MONGO_HOST
-    : process.env.DOCKER_COMPOSE
+  process.env.MONGO_HOST || process.env.DOCKER_COMPOSE
     ? 'mongodb'
     : 'host.docker.internal';
 var port = process.env.MONGO_PORT || 27017;
 var username = process.env.MONGO_USERNAME || '';
 var password = process.env.MONGO_PASSWORD || '';
 var dbName = 'greenfield';
-var mongoUrl = `mongodb://${username}${password && `:${password}`}${username && '@'}${hostname}:${port}/${dbName}`;
+var mongoUrl =
+  process.env.ENVIRONMENT === 'production'
+    ? process.env.MONGO_PRIVATE_URL
+    : `mongodb://${username}${password && `:${password}`}${
+        username && '@'
+      }${hostname}:${port}/${dbName}`;
 
 console.log('MONGOURL ' + mongoUrl);
 

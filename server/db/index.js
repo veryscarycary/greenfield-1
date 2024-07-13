@@ -6,7 +6,11 @@ var hostname =
     : process.env.DOCKER_COMPOSE
     ? 'mongodb'
     : 'host.docker.internal';
-var mongoUrl = `mongodb://${hostname}/greenfield`;
+var port = process.env.MONGO_PORT || 27017;
+var username = process.env.MONGO_USERNAME || '';
+var password = process.env.MONGO_PASSWORD || '';
+var dbName = 'greenfield';
+var mongoUrl = `mongodb://${username}${password && `:${password}`}${username && '@'}${hostname}:${port}/${dbName}`;
 
 console.log('MONGOHOST: ' + process.env.MONGO_HOST);
 console.log('hostname: ' + hostname);

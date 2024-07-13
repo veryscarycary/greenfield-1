@@ -8,10 +8,8 @@ var port = process.env.MONGO_PORT || 27017;
 var username = process.env.MONGO_USERNAME || '';
 var password = process.env.MONGO_PASSWORD || '';
 var dbName = 'greenfield';
-var mongoUrl =
-  process.env.ENVIRONMENT === 'production'
-    ? process.env.MONGO_PRIVATE_URL
-    : `mongodb://${username}${password && `:${password}`}${
+var mongoUrl = process.env.MONGO_PRIVATE_URL
+    || `mongodb://${username}${password && `:${password}`}${
         username && '@'
       }${hostname}:${port}/${dbName}`;
 

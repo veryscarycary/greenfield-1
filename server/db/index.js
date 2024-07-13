@@ -18,7 +18,11 @@ console.log('MONGOHOST: ' + process.env.MONGO_HOST);
 console.log('hostname: ' + hostname);
 // Connect Mongoose to our local MongoDB via URI specified above and export it below
 var db = mongoose
-  .connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(mongoUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    family: 4 // use ipv4, skip trying ipv6
+  })
   .then(() => console.log('Successfully connected to MongoDB'))
   .catch((err) => {
     console.error('Connection error:', err);

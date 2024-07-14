@@ -1,5 +1,7 @@
 var App = {};
 
+// LOBBY
+
 App.stage1 = function(game) {
   console.log('starting stage1');
   console.log(game);

@@ -1,3 +1,5 @@
+// ZELDA
+
 App.stage3 = function(game) {
   console.log("starting stage3");
   App.info.game = game;

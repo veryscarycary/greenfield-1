@@ -1,3 +1,5 @@
+// DINO WORLD
+
 App.stage2 = function(game) {
   console.log('starting stage2');
   App.info.game = game;

@@ -1,3 +1,5 @@
+// STAR LEDGES
+
 App.stage4 = function(game) {
   console.log('starting stage4');
   App.info.game = game;

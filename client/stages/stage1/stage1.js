@@ -2,11 +2,10 @@ var App = {};
 
 // LOBBY
 
-App.stage1 = function(game) {
+App.stage1 = function (game) {
   console.log('starting stage1');
   console.log(game);
   App.info.game = game;
-
 };
 
 App.stage1.prototype = {
@@ -53,7 +52,7 @@ App.stage1.prototype = {
     App.info.socket.emit('connect'); // logs connected, clean slate for players,
     // and then adds self as a player to player list
 
-    this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    // this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     // creates coin
     this.createCoin();
@@ -73,8 +72,6 @@ App.stage1.prototype = {
   },
 
   update: function () {
-    playersTouching = false;
-    playerTouching = false;
     var context = this;
     var updatedScore =
       'Score:' +
@@ -84,80 +81,33 @@ App.stage1.prototype = {
       '\nGold: ' +
       App.info.gold;
     scoreText.text = updatedScore;
-    // for each of the connected players, run each player's update fn
-    // and set collision between all players
-    for (var i = 0; i < App.info.players.length; i++) {
-      if (App.info.players[i].alive) {
-        App.info.players[i].update();
-        this.physics.arcade.collide(player, App.info.players[i].player);
-        this.physics.arcade.collide(
-          App.info.players[i].player,
-          coin,
-          function () {
-            playersTouching = true;
-          }
-        );
-        this.physics.arcade.collide(App.info.players[i].player, box);
-      }
-    }
+
 
     // set keyboard bindings, default movement to 0, set player collision and platforms
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
     var isTouchingGround = this.physics.arcade.collide(player, platforms);
 
-    //coin conditions
-    this.physics.arcade.collide(coin, platforms);
-    this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player, box);
-    this.physics.arcade.collide(player, coin, function () {
-      playerTouching = true;
-    });
+    this.enableCollisions();
+    this.enableOtherPlayersCollisions();
 
-    if (App.info.players.length === 0) {
-      playersTouching = true;
+    if (this.isOnlyOnePlayer() && this.doesPlayerHaveCoin()) {
+      this.startLobbyCountdown();
+    } else if (!this.isOnlyOnePlayer() && this.doesPlayerHaveCoin() && this.doAllPlayersHaveCoins()) {
+      this.startLobbyCountdown();
     }
 
-    if (playersTouching && playerTouching) {
-      setTimeout(function () {
-        context.state.start('stage2');
-      }, 3000);
-    }
-
-    if (cursors.left.isDown) {
-      player.body.velocity.x = -150 * App.info.speed;
-      player.animations.play('left');
-    } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150 * App.info.speed;
-      player.animations.play('right');
-    } else {
-      player.animations.stop();
-      player.frame = 4;
-    }
-
-    if (cursors.down.isDown) {
-      //this line starts stage 2 -- important!
-      // this.state.start('store');
-      // console.log('start stage 2');
-    }
+    this.setPlayerAnimations(cursors);
 
     //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down && isTouchingGround) {
-      App.info.score += 10;
+    this.setPlayerJumpPhysics(cursors, isTouchingGround);
 
-      player.body.velocity.y = -300 * App.info.jump;
-    }
+    // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    //key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    // if (key1.isDown) {
+    // if (this.key1.isDown) {
     //   this.state.start('stage4');
     // }
-
-    if (this.key1.isDown) {
-      this.state.start('stage4');
-    }
 
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -200,7 +150,7 @@ App.stage1.prototype = {
     ledge.tint = 0xff0000;
   },
 
-  createLobbyText: function() {
+  createLobbyText: function () {
     var text =
       'Waiting for new players!\nWhen all players are present,\n grab the coin to start!';
     this.coolText = this.add.bitmapText(
@@ -214,7 +164,43 @@ App.stage1.prototype = {
     this.coolText.tint = 0xff00ff;
   },
 
-  createPlayer: function() {
+  createLobbyCountdownText: function() {
+    var text = 'Game starting in...';
+    this.lobbyText = this.add.bitmapText(
+      this.world.centerX - 210,
+      50,
+      'pixel',
+      text,
+      25
+    );
+    this.lobbyText.align = 'center';
+    this.lobbyText.tint = 0xffd700;
+
+    this.createLobbyTimer();
+  },
+
+  createLobbyTimer: function() {
+    if (!this.lobbyCountdownText) {
+      this.lobbyCountdownText = this.add.text(this.world.centerX + 160, 45, this.lobbyCountdown, {
+        fontSize: '50px',
+        fill: 'gold',
+      });
+    } else {
+      this.lobbyCountdownText.text = this.lobbyCountdown;
+    }
+
+    this.lobbyTimer = setTimeout(() => {
+      this.lobbyCountdown -= 1;
+
+      if (this.lobbyCountdown <= 0)  {
+        this.state.start('stage2');
+      } else {
+        this.lobbyTimer = this.createLobbyTimer();
+      }
+    }, 1000);
+  },
+
+  createPlayer: function () {
     player = this.add.sprite(32, this.world.height - 150, 'dude');
     App.info.player = player;
     this.physics.arcade.enable(player);
@@ -222,11 +208,83 @@ App.stage1.prototype = {
     player.body.gravity.y = 300 * App.info.weight;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+    player.hasCoin = false;
   },
-}; 
 
+  enableCollisions: function () {
+    this.physics.arcade.collide(coin, platforms);
+    this.physics.arcade.collide(box, platforms);
+    this.physics.arcade.collide(player, box);
+    this.physics.arcade.collide(player, coin, function() {
+      player.hasCoin = true;
+      coin.kill();
+    });
+  },
 
-App.info = { // this is the source of truth of info for each stage
+  enableOtherPlayersCollisions: function() {
+    // for each of the connected players, run each player's update fn
+    // and set collision between all players
+    for (var i = 0; i < App.info.players.length; i++) {
+      if (App.info.players[i].alive) {
+        App.info.players[i].update();
+        this.physics.arcade.collide(player, App.info.players[i].player);
+        this.physics.arcade.collide(
+          App.info.players[i].player,
+          coin,
+          function () {
+            App.info.players[i].player.hasCoin = true;
+          }
+        );
+        this.physics.arcade.collide(App.info.players[i].player, box);
+      }
+    }
+  },
+  
+  doesPlayerHaveCoin: function() {
+    return App.info.player.hasCoin;
+  },
+
+  doAllPlayersHaveCoins: function() {
+    return App.info.players.every((player) => player.hasCoin);
+  },
+
+  isOnlyOnePlayer: function () {
+    return App.info.players.length === 0;
+  },
+
+  setPlayerAnimations: function(cursors) {
+    if (cursors.left.isDown) {
+      player.body.velocity.x = -150 * App.info.speed;
+      player.animations.play('left');
+    } else if (cursors.right.isDown) {
+      player.body.velocity.x = 150 * App.info.speed;
+      player.animations.play('right');
+    } else {
+      player.animations.stop();
+      player.frame = 4;
+    }
+  },
+
+  setPlayerJumpPhysics: function(cursors, isTouchingGround) {
+    if (cursors.up.isDown && player.body.touching.down && isTouchingGround) {
+      App.info.score += 10;
+
+      player.body.velocity.y = -300 * App.info.jump;
+    }
+  },
+
+  startLobbyCountdown: function() {
+    const COUNTDOWN_SECS = 10;
+
+    if (!this.lobbyCountdown) {
+      this.lobbyCountdown = COUNTDOWN_SECS;
+      this.createLobbyCountdownText();
+    }
+  },
+};
+
+App.info = {
+  // this is the source of truth of info for each stage
   score: 0,
   health: 100,
   gold: 0,
@@ -241,46 +299,64 @@ App.info = { // this is the source of truth of info for each stage
   difficulty: 1,
   nextStage: null,
 
- // sets this player's socket
+  // sets this player's socket
   socket: io.connect('http://localhost:3000'), // sets this player's socket
 
-  
   //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {
-
-    App.info.socket.on('connect', function() {
+    App.info.socket.on('connect', function () {
       App.info.socketConnect();
     });
 
-    App.info.socket.on('disconnected', function() {App.info.socketDisconnect();});
-    App.info.socket.on('newplayer', function(data){App.info.createPlayer(data); });
-    App.info.socket.on('moveplayer', function(data){App.info.movePlayer(data); });
-    App.info.socket.on('movep2player', function(data){App.info.moveP2Player(data); });
-    App.info.socket.on('remove player', function(data){App.info.removePlayer(data); });
+    App.info.socket.on('disconnected', function () {
+      App.info.socketDisconnect();
+    });
+    App.info.socket.on('newplayer', function (data) {
+      App.info.createPlayer(data);
+    });
+    App.info.socket.on('moveplayer', function (data) {
+      App.info.movePlayer(data);
+    });
+    App.info.socket.on('movep2player', function (data) {
+      App.info.moveP2Player(data);
+    });
+    App.info.socket.on('remove player', function (data) {
+      App.info.removePlayer(data);
+    });
 
-    App.info.socket.on('disconnected', function() { App.info.socketDisconnect(); });
-    App.info.socket.on('newplayer', function(data) { App.info.createPlayer(data); });
-    App.info.socket.on('moveplayer', function(data) { App.info.movePlayer(data); });
-    App.info.socket.on('remove player', function(data) { App.info.removePlayer(data); });
+    App.info.socket.on('disconnected', function () {
+      App.info.socketDisconnect();
+    });
+    App.info.socket.on('newplayer', function (data) {
+      App.info.createPlayer(data);
+    });
+    App.info.socket.on('moveplayer', function (data) {
+      App.info.movePlayer(data);
+    });
+    App.info.socket.on('remove player', function (data) {
+      App.info.removePlayer(data);
+    });
 
-    App.info.socket.on('stage', function() {
+    App.info.socket.on('stage', function () {
       App.info.stageConnect();
     });
-  
   },
   //this function is called  when you connect to a new stage, it resets the players
-  stageConnect: function() {
+  stageConnect: function () {
     console.log('stage connect');
     App.info.players.forEach(function (player) {
       player.player.kill();
     });
     App.info.players = [];
-    App.info.socket.emit('repop', {x: player.x, y: player.y, angle: player.angle});
-
+    App.info.socket.emit('repop', {
+      x: player.x,
+      y: player.y,
+      angle: player.angle,
+    });
   },
 
   //this is fired on our initial connect-it starts a new game
-  socketConnect: function() {
+  socketConnect: function () {
     console.log('connected to server');
     console.log('players array', App.info.players);
 
@@ -292,90 +368,114 @@ App.info = { // this is the source of truth of info for each stage
 
     // lets all players know, including self, to add/create this player
     // (runs 'createPlayer')
-    App.info.socket.emit('new player', {x: player.x, y: player.y, angle: player.angle});
-
+    App.info.socket.emit('new player', {
+      x: player.x,
+      y: player.y,
+      angle: player.angle,
+    });
   },
   socketDisconnect: function () {
     // simply hears when the user disconnects from the server
     // and logs that the player has disconnected
     console.log('disconnected from server');
     App.info.socket.emit('disconnect');
-
   },
 
-  //creates a player 
+  //creates a player
   createPlayer: function (data) {
-
     var duplicate = App.info.findPlayer(data.id);
 
-    if (duplicate) { // if player already found in players array, do not continue
+    if (duplicate) {
+      // if player already found in players array, do not continue
       console.log('duplicate player');
       return;
-    } 
+    }
 
     // adds new player to array with (name, game object, player sprite object, x, y, angle)
-    App.info.players.push( new RemotePlayer(data.id, App.info.game, player, data.x, data.y, data.angle));
-
+    App.info.players.push(
+      new RemotePlayer(
+        data.id,
+        App.info.game,
+        player,
+        data.x,
+        data.y,
+        data.angle
+      )
+    );
   },
 
-  movePlayer: function (data) {
-
+  movePlayer: function (data, ) {
+    const MOVEMENT_BUFFER = 30;
 
     var movedPlayer = App.info.findPlayer(data.id);
 
-    if (!movedPlayer) { // if player is not in players array, don't continue
+    if (!movedPlayer) {
+      // if player is not in players array, don't continue
       console.log('player not found for move', data.id);
       return;
+    }
+
+    if (data.x < movedPlayer.player.x) {
+      movedPlayer.player.play('left');
+    } else if (data.x > movedPlayer.player.x) {
+      movedPlayer.player.play('right');
+    } else if (movedPlayer.player.movementBuffer > MOVEMENT_BUFFER) {
+      movedPlayer.player.animations.stop();
+      movedPlayer.player.frame = 4;
+      movedPlayer.player.movementBuffer = 0;
+    } else {
+      if (!movedPlayer.player.movementBuffer) {
+        movedPlayer.player.movementBuffer = 0;
+      }
+
+      movedPlayer.player.movementBuffer += 1;
     }
 
     // every time a player moves, the x,y,angle are set on that player object
     // including self
     movedPlayer.player.x = data.x;
-    movedPlayer.player.y = data.y; 
+    movedPlayer.player.y = data.y;
     movedPlayer.player.angle = data.angle;
-    movedPlayer.player.body.reset(data.x, data.y);
-
+    // movedPlayer.player.body.reset(data.x, data.y);
   },
 
   // for stage 5
   moveP2Player: function (data) {
-
-
     var movedPlayer = App.info.findPlayer(data.id);
 
-    if (!movedPlayer) { // if player is not in players array, don't continue
+    if (!movedPlayer) {
+      // if player is not in players array, don't continue
       console.log('player not found', data.id);
       return;
     }
 
     // every time a player moves, the x,y,angle are set on that player object
     // including self
- 
+
     movedPlayer.player.angle = data.angle;
     movedPlayer.player.body.reset(data.x, data.y);
-
   },
 
   removePlayer: function (data) {
     var removedPlayer = App.info.findPlayer(data.id);
 
-    if (!removedPlayer) { // if player is not in players array, don't continue
-      console.log( 'player not found for removal', data.id);
+    if (!removedPlayer) {
+      // if player is not in players array, don't continue
+      console.log('player not found for removal', data.id);
       return;
     }
 
     // wipe disconnected player from screen and remove them from player array
     removedPlayer.player.kill();
     App.info.players.splice(App.info.players.indexOf(removedPlayer), 1);
-
   },
-  
+
   // returns player from player array or undefined
   findPlayer: function (id) {
-    for (var i = 0; i < App.info.players.length; i ++) {
+    for (var i = 0; i < App.info.players.length; i++) {
       if (App.info.players[i].player.name === id) {
         return App.info.players[i];
       }
     }
-  }
+  },
 };

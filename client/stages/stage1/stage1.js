@@ -10,73 +10,56 @@ App.stage1 = function(game) {
 };
 
 App.stage1.prototype = {
-  preload: function() {
+  preload: function () {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
-    this.load.bitmapFont('pixel', '/../assets/font.png','/../assets/font.fnt');
+    this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
     this.load.image('background', '/../../../assets/space.png');
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
     this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
-
   },
 
-  create: function() {
+  create: function () {
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.add.tileSprite(0, 0, 800, 600, 'background');
     this.physics.arcade.OVERLAP_BIAS = 10;
 
-
     platforms = this.add.group();
     platforms.enableBody = true;
-    var ground = platforms.create(0, this.world.height - 64, 'ground');
-    ground.scale.setTo(2, 2);
-    ground.body.immovable = true;
-    ground.tint = 0xFF0000;
 
-    var ledge = platforms.create(400,400, 'ground');
-    ledge.body.immovable = true;
-    ledge.tint = 0xFF0000;
-    ledge = platforms.create( -150, 250, 'ground');
-    ledge.body.immovable = true;
-    ledge.tint = 0xFF0000;
+    this.createGround(platforms);
 
+    this.createLedges(platforms);
 
-    player = this.add.sprite(32, this.world.height - 150, 'dude');
-    App.info.player = player;
-    this.physics.arcade.enable(player);
-    player.body.collideWorldBounds = true;
-    player.body.gravity.y = 300 * App.info.weight;
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    this.createPlayer();
 
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
-    scoreText = this.add.text(16, 16, updatedScore, {fontSize: '25px', fill: '#fff'});
-    var style = {fill: "white"};
+    var updatedScore =
+      'Score:' +
+      App.info.score +
+      '\nHealth: ' +
+      Math.floor(App.info.health) +
+      '\nGold: ' +
+      App.info.gold;
+    scoreText = this.add.text(16, 16, updatedScore, {
+      fontSize: '25px',
+      fill: '#fff',
+    });
+    var style = { fill: 'white' };
 
     //adds text to screen
-    var text = "Waiting for new players!\nWhen all players are present,\n grab the coin to start!";
-    this.coolText = this.add.bitmapText(this.world.centerX-300, 120, "pixel", text, 30);
-    this.coolText.align = 'center';
-    this.coolText.tint = 0xff00ff;
-
+    this.createLobbyText();
 
     App.info.socketHandlers();
     App.info.socket.emit('connect'); // logs connected, clean slate for players,
-                                     // and then adds self as a player to player list
+    // and then adds self as a player to player list
 
     this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    //creates coin
-    coin = this.add.sprite(100, 0, 'coin');
-    coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
-    this.physics.arcade.enable(coin);
-    coin.body.gravity.y = 300;
-    coin.animations.play('bling');
+    // creates coin
+    this.createCoin();
 
-    //box
-    box = this.add.sprite(400, 0, 'box');
-    this.physics.arcade.enable(box);
-    box.body.gravity.y = 300;
+    // box
+    this.createBox();
 
     //item magic
     player.tint = App.info.color;
@@ -87,28 +70,33 @@ App.stage1.prototype = {
       snow.autoScroll(20, 50);
       snow.fixedToCamera = true;
     }
-
-
-    
-
   },
 
-  update: function() {
-
+  update: function () {
     playersTouching = false;
     playerTouching = false;
     var context = this;
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
+    var updatedScore =
+      'Score:' +
+      App.info.score +
+      '\nHealth: ' +
+      Math.floor(App.info.health) +
+      '\nGold: ' +
+      App.info.gold;
     scoreText.text = updatedScore;
     // for each of the connected players, run each player's update fn
     // and set collision between all players
-    for ( var i = 0; i < App.info.players.length; i++ ) {
-      if (App.info.players[i].alive) { 
+    for (var i = 0; i < App.info.players.length; i++) {
+      if (App.info.players[i].alive) {
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
-        this.physics.arcade.collide(App.info.players[i].player, coin, function(){
-          playersTouching = true;
-        });
+        this.physics.arcade.collide(
+          App.info.players[i].player,
+          coin,
+          function () {
+            playersTouching = true;
+          }
+        );
         this.physics.arcade.collide(App.info.players[i].player, box);
       }
     }
@@ -116,29 +104,25 @@ App.stage1.prototype = {
     // set keyboard bindings, default movement to 0, set player collision and platforms
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
-    this.physics.arcade.collide(player, platforms);
-
-
+    var isTouchingGround = this.physics.arcade.collide(player, platforms);
 
     //coin conditions
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
-    this.physics.arcade.collide(player, coin, function() {
+    this.physics.arcade.collide(player, coin, function () {
       playerTouching = true;
-      
     });
 
-    if ( App.info.players.length === 0 ) {
+    if (App.info.players.length === 0) {
       playersTouching = true;
     }
-    
+
     if (playersTouching && playerTouching) {
       setTimeout(function () {
-        context.state.start('stage2'); 
-      }, 3000);  
+        context.state.start('stage2');
+      }, 3000);
     }
-    
 
     if (cursors.left.isDown) {
       player.body.velocity.x = -150 * App.info.speed;
@@ -149,37 +133,30 @@ App.stage1.prototype = {
     } else {
       player.animations.stop();
       player.frame = 4;
-
     }
 
     if (cursors.down.isDown) {
-
       //this line starts stage 2 -- important!
-
-
       // this.state.start('store');
       // console.log('start stage 2');
-
-
     }
 
-    if (cursors.up.isDown && player.body.touching.down) {
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down && isTouchingGround) {
       App.info.score += 10;
 
       player.body.velocity.y = -300 * App.info.jump;
- 
     }
 
     //key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
     // if (key1.isDown) {
-    //   this.state.start('stage4'); 
+    //   this.state.start('stage4');
     // }
 
-    
     if (this.key1.isDown) {
-      this.state.start('stage4'); 
+      this.state.start('stage4');
     }
 
     // every frame, each player will emit their x,y,angle to every player
@@ -187,13 +164,65 @@ App.stage1.prototype = {
     App.info.socket.emit('move player', {
       x: player.x,
       y: player.y,
-      angle: player.angle
+      angle: player.angle,
     });
+  },
 
+  // Stage1 Utils
 
+  createBox: function () {
+    box = this.add.sprite(400, 0, 'box');
+    this.physics.arcade.enable(box);
+    box.body.gravity.y = 300;
+  },
 
+  createCoin: function () {
+    coin = this.add.sprite(100, 0, 'coin');
+    coin.animations.add('bling', [0, 1, 2, 3, 4, 5, 6, 7, 8], 10, true);
+    this.physics.arcade.enable(coin);
+    coin.body.gravity.y = 300;
+    coin.animations.play('bling');
+  },
 
-  }
+  createGround: function (platforms) {
+    ground = platforms.create(0, this.world.height - 64, 'ground');
+    ground.scale.setTo(2, 2);
+    ground.body.immovable = true;
+    ground.tint = 0xff0000;
+  },
+
+  createLedges: function (platforms) {
+    var ledge = platforms.create(400, 400, 'ground');
+    ledge.body.immovable = true;
+    ledge.tint = 0xff0000;
+    ledge = platforms.create(-150, 250, 'ground');
+    ledge.body.immovable = true;
+    ledge.tint = 0xff0000;
+  },
+
+  createLobbyText: function() {
+    var text =
+      'Waiting for new players!\nWhen all players are present,\n grab the coin to start!';
+    this.coolText = this.add.bitmapText(
+      this.world.centerX - 300,
+      120,
+      'pixel',
+      text,
+      30
+    );
+    this.coolText.align = 'center';
+    this.coolText.tint = 0xff00ff;
+  },
+
+  createPlayer: function() {
+    player = this.add.sprite(32, this.world.height - 150, 'dude');
+    App.info.player = player;
+    this.physics.arcade.enable(player);
+    player.body.collideWorldBounds = true;
+    player.body.gravity.y = 300 * App.info.weight;
+    player.animations.add('left', [0, 1, 2, 3], 10, true);
+    player.animations.add('right', [5, 6, 7, 8], 10, true);
+  },
 }; 
 
 

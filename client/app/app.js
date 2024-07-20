@@ -1,4 +1,6 @@
 
+var App = {};
+
 angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard'])
 .config(function($routeProvider) {
   $routeProvider

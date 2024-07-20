@@ -12,7 +12,7 @@ App.stage5.prototype = {
     this.load.image('ghost', '/../../../assets/ghost.ico', 32, 32);
     this.load.image('cherry', '/../../../assets/cherry.png', 32, 32);
     this.load.image('background', '/../../../assets/space.png');
-    this.load.script('otherPlayer5', '/scripts/stage5/otherPlayer5.js');
+    this.load.script('otherPlayer5', '/stages/stage5/otherPlayer5.js');
   },
 
   create: function() {

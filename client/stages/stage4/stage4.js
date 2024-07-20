@@ -16,7 +16,7 @@ App.stage4.prototype = {
     // this.load.image('skull', '/../../../assets/skull.png');
     this.load.image('skull', '/../../../assets/greenpotion.png');
     this.load.image('heart', '/../../../assets/heart.png');
-    this.load.script('otherPlayer4', '/scripts/stage4/otherPlayer4.js');
+    this.load.script('otherPlayer4', '/stages/stage4/otherPlayer4.js');
   },
 
   create: function() {

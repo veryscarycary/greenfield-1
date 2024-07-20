@@ -10,7 +10,7 @@ App.stage2.prototype = {
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.spritesheet('robocop', '/../../../assets/robocop.png', 40, 62);
-    this.load.script('otherPlayer2', '/scripts/stage2/otherPlayer2.js');
+    this.load.script('otherPlayer2', '/stages/stage2/otherPlayer2.js');
     this.load.image('mountains', '/../../../assets/mountains.png');
     this.load.image('ledge', '/../../../assets/ledge.png');
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);

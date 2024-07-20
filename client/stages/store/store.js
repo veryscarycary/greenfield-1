@@ -23,7 +23,7 @@ App.store.prototype = {
     this.load.image('carrot', '/../../../assets/carrot.png');
     this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
     this.load.image('snow', '/../../../assets/snow2.png');
-    this.load.script('otherplayerstore', '/scripts/store/otherplayerstore.js');
+    this.load.script('otherplayerstore', '/stages/store/otherplayerstore.js');
   },
   
   create () {

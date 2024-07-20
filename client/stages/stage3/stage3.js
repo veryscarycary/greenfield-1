@@ -93,7 +93,7 @@ App.stage3.prototype = {
 
 
     // this.load.image('ground', '/../../../assets/platform.png');
-    this.load.script('otherPlayer3', '/scripts/stage3/otherPlayer3.js');
+    this.load.script('otherPlayer3', '/stages/stage3/otherPlayer3.js');
   },
 
   playersNotInGroup: true,

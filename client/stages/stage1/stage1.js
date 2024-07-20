@@ -82,6 +82,8 @@ App.stage1.prototype = {
       App.info.gold;
     scoreText.text = updatedScore;
 
+    console.log('update is running');
+
 
     // set keyboard bindings, default movement to 0, set player collision and platforms
     var cursors = this.input.keyboard.createCursorKeys();
@@ -91,9 +93,7 @@ App.stage1.prototype = {
     this.enableCollisions();
     this.enableOtherPlayersCollisions();
 
-    if (this.isOnlyOnePlayer() && this.doesPlayerHaveCoin()) {
-      this.startLobbyCountdown();
-    } else if (!this.isOnlyOnePlayer() && this.doesPlayerHaveCoin() && this.doAllPlayersHaveCoins()) {
+    if (this.doesAnyPlayerHaveCoin()) {
       this.startLobbyCountdown();
     }
 
@@ -233,6 +233,7 @@ App.stage1.prototype = {
           coin,
           function () {
             App.info.players[i].player.hasCoin = true;
+            coin.kill();
           }
         );
         this.physics.arcade.collide(App.info.players[i].player, box);
@@ -240,12 +241,8 @@ App.stage1.prototype = {
     }
   },
   
-  doesPlayerHaveCoin: function() {
-    return App.info.player.hasCoin;
-  },
-
-  doAllPlayersHaveCoins: function() {
-    return App.info.players.every((player) => player.hasCoin);
+  doesAnyPlayerHaveCoin: function() {
+    return App.info.player.hasCoin || App.info.players.some((player) => player.hasCoin);
   },
 
   isOnlyOnePlayer: function () {

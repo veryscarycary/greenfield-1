@@ -1,12 +1,23 @@
-<div>
-  <h3>Sign-In</h3>
-  <form name='sign-in' ng-submit='signin()'>
-  Username: <input type='text' ng-model='user.username'>
-  <br>
-  Password: <input type='text' ng-model='user.password'>
-	<br>
-	<button>Sign In</button>
+
+<div class='container'>
+  <link rel="stylesheet" href="./app/signin/signin.css">
+  <p>FRENEMIES - THE GAME</p>
+  <!-- <a href='/auth/facebook'>
+    <img src='/assets/fblogin.png' >
+  </a> -->
+</div>
+<div class="login-container">
+  <h1>Login</h1>
+  <form class="form-container">
+    <label for="username">Username:</label>
+    <input type="text" id="username" ng-model="user.username">
+    <br />
+    <label for="password">Password:</label>
+    <input type="password" id="password" ng-model="user.password">
+    <br />
+    <br />
+    <button class="btn-primary" type="button" ng-click="login()">Login</button>
   </form>
   <br>
-  	<a href="#/signup">Don't have an account? Signup now!</a>
+  <a href="/signup">Don't have an account? Signup now!</a>
 </div>

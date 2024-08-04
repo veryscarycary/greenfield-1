@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
-//var bcrypt = require('bcrypt'); //might need this later
-
+var bcrypt = require('bcrypt');
 // var userSchema = mongoose.Schema({
 //   username: {
 //     type: String,
@@ -9,23 +8,30 @@ var mongoose = require('mongoose');
 //   password: String
 // });
 
-// FOR FACEBOOK AUTHENTICATION
 var userSchema = mongoose.Schema({
-  local: {
-    // username: {
-    //   type: String,
-    //   unique: true
-    // },
-    // password: String
-    highscore: Number
-  },
-  facebook: {
-    id: String,
-    token: String,
-    email: String,
-    name: String
-  }
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    highscore: Number,
+  // facebook: {
+  //   id: String,
+  //   token: String,
+  //   email: String,
+  //   name: String
+  // }
 });
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+userSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);
 

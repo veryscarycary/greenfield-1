@@ -1,0 +1,9 @@
+.login-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.form-container {
+	max-width: 400px;
+}

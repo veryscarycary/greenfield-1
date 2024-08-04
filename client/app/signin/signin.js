@@ -18,4 +18,11 @@ angular.module('app.signin', [])
   	});
   };
 
+}).directive('signIn', function() {
+	console.log('inside directive');
+	return {
+		restrict: 'E',
+		templateUrl: './app/signin/signin.html',
+		controller: 'SigninController'
+	};
 });

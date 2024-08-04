@@ -28,7 +28,7 @@ app.use(session({
 }));
 // app.use('/', authRoutes(app, passport));
 
-app.get('/', function(req, res) {
+app.get('*', function(req, res) {
   res.redirect('/index.html');
 });
 

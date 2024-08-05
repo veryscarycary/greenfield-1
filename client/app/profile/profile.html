@@ -1,4 +1,13 @@
 <div>
-  <h1 class='welcome'>Welcome {{ user.name.split(' ')[0] }}! </h1>
-  <h2 class='highscore'>Highscore: {{ user.highscore }}</h2>
+  <nav>
+    <a href='/game'>Join Game</a> |
+    <a href='/profile'>Profile</a> |
+    <a href='/leaderboard'>Leaderboard</a> |
+    <a href ng-click='signout()'>Sign Out</a>
+  </nav>
+
+  <div>
+    <h1 class='welcome'>Welcome {{ user.name.split(' ')[0] }}! </h1>
+    <h2 class='highscore'>Highscore: {{ user.highscore }}</h2>
+  </div>
 </div>

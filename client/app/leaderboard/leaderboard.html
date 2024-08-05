@@ -1,4 +1,13 @@
 <div>
-  <h3>This is Leaderboard Page</h3>
-  <li ng-repeat= 'user in leaderboard | orderBy: "-highscore"'> {{ user }} </li>
+  <nav>
+    <a href='/game'>Join Game</a> |
+    <a href='/profile'>Profile</a> |
+    <a href='/leaderboard'>Leaderboard</a> |
+    <a href ng-click='signout()'>Sign Out</a>
+  </nav>
+
+  <div>
+    <h3>This is Leaderboard Page</h3>
+    <li ng-repeat= 'user in leaderboard | orderBy: "-highscore"'> {{ user }} </li>
+  </div>
 </div>

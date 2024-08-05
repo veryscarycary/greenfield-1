@@ -1,12 +1,16 @@
 <div>
   <h1>Sign Up</h1>
-  <form ng-submit="signup()">
+  <form class="form-container">
     <label for="username">Username:</label>
-    <input type="text" id="username" ng-model="user.username" required>
+    <input type="text" id="username" ng-model="signupForm.username" required>
+    <br />
     <label for="password">Password:</label>
-    <input type="password" id="password" ng-model="user.password" required>
-    <button type="submit">Register</button>
+    <input type="password" id="password" ng-model="signupForm.password" required>
+    <br />
+    <br />
+    <button class="btn-primary" type="button" ng-click="signup()">Sign up</button>
   </form>
   <br>
-    <a href="#/signin">Have an account already? Sign-in now!</a>
+  <br>
+    <a href="/signin">Have an account already? Sign-in now!</a>
 </div>

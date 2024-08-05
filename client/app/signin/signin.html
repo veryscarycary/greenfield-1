@@ -8,15 +8,18 @@
 </div>
 <div class="login-container">
   <h1>Login</h1>
+  <div class="error-box" ng-if="hasLoginError">
+    Sorry, that username and password did not match a profile in our system. Please try again or sign up.
+  </div>
   <form class="form-container">
     <label for="username">Username:</label>
-    <input type="text" id="username" ng-model="user.username">
+    <input type="text" id="username" ng-model="signinForm.username" required>
     <br />
     <label for="password">Password:</label>
-    <input type="password" id="password" ng-model="user.password">
+    <input type="password" id="password" ng-model="signinForm.password" required>
     <br />
     <br />
-    <button class="btn-primary" type="button" ng-click="login()">Login</button>
+    <button class="btn-primary" type="button" ng-click="signin()">Login</button>
   </form>
   <br>
   <a href="/signup">Don't have an account? Signup now!</a>

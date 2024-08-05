@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 // var userSchema = mongoose.Schema({
 //   username: {
 //     type: String,
@@ -29,8 +29,16 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.methods.comparePassword = function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+
+// Add the comparePassword method to the user schema
+userSchema.methods.comparePassword = function(userInputPassword, cb) {
+  console.log('Candidate Password:', userInputPassword); // Debugging line
+  console.log('Hashed Password:', this.password); // Debugging line
+
+  bcrypt.compare(userInputPassword, this.password, (err, isMatch) => {
+    if (err) return cb(err);
+    cb(null, isMatch);
+  });
 };
 
 module.exports = mongoose.model('User', userSchema);

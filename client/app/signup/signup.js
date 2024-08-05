@@ -2,20 +2,11 @@ angular.module('app.signup', [])
 
 .controller('SignupController', function ($scope, $http, $location) {
   
-	$scope.user = {};
-
-  $scope.signup = function() {
-  	$http({
-  		method: 'POST',
-  		url: '/signup',
-  		data: $scope.user
-  	})
-  	.then(function(){
-  		$location.path('/menu');
-  	})
-  	.catch(function(){
-  		$location.path('/signin')
-  	});
-  };
-
+}).directive('signUp', function() {
+	console.log('inside directive');
+	return {
+		restrict: 'E',
+		templateUrl: './app/signup/signup.html',
+		controller: 'SignupController'
+	};
 });

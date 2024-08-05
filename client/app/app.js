@@ -4,24 +4,43 @@ var App = {};
 angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 'app.signin'])
 .config(function($routeProvider, $locationProvider) {
   $routeProvider
+    .when('/signin', {
+      templateUrl: './app/signin/signin.html',
+      Controller: 'SigninController'
+    })
     .when('/signup', {
       templateUrl: './app/signup/signup.html',
       Controller: 'SignupController'
     })
     .when('/game', {
       templateUrl: './app/game/game.html',
-      controller: 'GameController'
+      controller: 'GameController',
+      resolve: {
+        auth: function(AuthService) {
+          return AuthService.checkAuth();
+        }
+      },
     })
     .when('/profile', {
       templateUrl: './app/profile/profile.html',
-      controller: 'ProfileController'
+      controller: 'ProfileController',
+      resolve: {
+        auth: function(AuthService) {
+          return AuthService.checkAuth();
+        }
+      },
     })
     .when('/leaderboard', {
       templateUrl: './app/leaderboard/leaderboard.html',
-      controller: 'LeaderboardController'
+      controller: 'LeaderboardController',
+      resolve: {
+        auth: function(AuthService) {
+          return AuthService.checkAuth();
+        }
+      },
     })
     .otherwise({
-      redirectTo: '/'
+      redirectTo: '/signin'
     });
 
   // Enable HTML5 mode routing
@@ -31,7 +50,9 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   });
 })
 .controller('appCtrl', function($scope, $http, $location, $route) {
-  $scope.isLoggedIn = false;
+  $scope.user = {};
+  $scope.signinForm = {};
+  $scope.signupForm = {};
   
   // Watch for changes to isLoggedIn
   $scope.$watch('isLoggedIn', function(newVal, oldVal) {
@@ -49,27 +70,50 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
     // App.info.socket.disconnect();
   });
 
-  $scope.login = function() {
-    $scope.isLoggedIn = true;
+  $scope.signin = function() {
+    $scope.hasLoginError = false;
+
+    $http({
+  		method: 'POST',
+  		url: '/auth/signin',
+  		data: $scope.signinForm
+  	})
+  	.then(function(){
+  		$location.path('/game');
+  	})
+  	.catch(function(){
+      $scope.hasLoginError = true;
+  	});
+
     // $http.post('/auth/login', $scope.user).then(function(response) {
     //   $scope.user = response.data.user;
     //   $location.path('/');
     // });
   };
+
+  $scope.signup = function() {
+  	$http({
+  		method: 'POST',
+  		url: '/auth/signup',
+  		data: $scope.signupForm
+  	})
+  	.then(function(){
+  		$location.path('/game');
+  	})
+  	.catch(function(){
+  		$location.path('/signin')
+  	});
+  };
   
   $scope.signout = function() {
-    $scope.isLoggedIn = false;
-    // $http({
-    //   method: 'GET',
-    //   url: '/signout'
-    // }).then(function(res) {
-    //   $http({
-    //     method: 'GET',
-    //     url: '/'
-    //   });
-    // }, function(err) {
-    //   console.log('error: ', err);
-    // });
+    $http({
+      method: 'GET',
+      url: '/signout'
+    }).then(function(res) {
+      $location.path('signin');
+    }, function(err) {
+      console.log('error: ', err);
+    });
   };
   
   $scope.register = function() {
@@ -78,4 +122,39 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
       $location.path('/');
     });
   };
+})
+.factory('AuthService', function($http, $q) {
+  let isAuthenticated = false;
+
+  const checkAuth = function() {
+    const deferred = $q.defer();
+
+    $http.get('/auth/check')
+      .then(function(response) {
+        if (response.data.isAuthenticated) {
+          isAuthenticated = true;
+          deferred.resolve();
+        } else {
+          isAuthenticated = false;
+          deferred.reject('Not Authenticated');
+        }
+      })
+      .catch(function() {
+        isAuthenticated = false;
+        deferred.reject('Not Authenticated');
+      });
+
+    return deferred.promise;
+  };
+
+  return {
+    checkAuth: checkAuth,
+    isAuthenticated: function() { return isAuthenticated; }
+  };
+}).run(function($rootScope, $location, AuthService) {
+  $rootScope.$on('$routeChangeError', function(event, current, previous, rejection) {
+    if (rejection === 'Not Authenticated') {
+      $location.path('/signin');
+    }
+  });
 });

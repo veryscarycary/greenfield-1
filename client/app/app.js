@@ -1,7 +1,7 @@
 
 var App = {};
 
-angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 'app.signin'])
+angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 'app.signin', 'app.signup'])
 .config(function($routeProvider, $locationProvider) {
   $routeProvider
     .when('/signin', {

@@ -54,14 +54,6 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $scope.signinForm = {};
   $scope.signupForm = {};
   
-  // Watch for changes to isLoggedIn
-  $scope.$watch('isLoggedIn', function(newVal, oldVal) {
-    if (newVal) {
-      // Redirect to game page if logged in
-      $location.path('/game');
-    }
-  });
-
   $scope.$on( "$routeChangeStart", function(event, next, current) {
     console.log('ROUTE CHANGE');
 

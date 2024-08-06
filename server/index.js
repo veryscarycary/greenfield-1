@@ -10,6 +10,7 @@ var session = require('express-session');
 var ip = require('./config/ip.js');
 var port = require('./config/port.js');
 var authRoutes = require('./routes/auth.js');
+var path = require('path');
 
 require('./config/passport')(passport);
 // var authRoutes = require('./db/authRoutes');
@@ -34,7 +35,7 @@ app.use('/auth', authRoutes);
 // app.use('/', authRoutes(app, passport));
 
 app.get('*', function(req, res) {
-  res.redirect('/index.html');
+  res.sendFile(path.join(__dirname, '/../client/index.html'));
 });
 
 // app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email']}));

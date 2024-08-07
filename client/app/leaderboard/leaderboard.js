@@ -1,17 +1,21 @@
 angular.module('app.leaderboard', [])
 
 .controller('LeaderboardController', function ($scope, $http) {
+	$scope.leaderboard = [];
   	
-  	$scope.leaderboard = [{player: 'one', highscore: 10000}, {player: 'two', highscore: 2000}, {player: 'three', highscore: 60000}];
-  	
-  	// $http({
-  	// 	method: 'GET',
-  	// 	url: //tbd
-  	// })
-  	// .then(function(leaderboard) {
-  	// 	$scope.leaderboard = leaderboard.data;
-  	// })
-  	// .catch(function(err) {
-  	// 	console.log('Error occured: ', err);
-  	// });
+  $scope.getLeaderboard = function() {
+    $http({
+      method: 'GET',
+      url: `/api/leaderboard`,
+    }).then(function(res) {
+      console.log('res.data,', res.data)
+      var leaderboard = res.data;
+      $scope.leaderboard = leaderboard;
+      console.log('leaderboard', $scope.leaderboard)
+    }, function(err) {
+      console.log('error: ', err);
+    });
+  };
+
+	$scope.getLeaderboard();
 });

@@ -1,6 +1,7 @@
 angular.module('app.game', [])
 
-.controller('GameController', function ($scope, $window) {
+.controller('GameController', function ($scope, $window, auth) {
+	$scope.user = auth.user;
 	$window.load = false;
 
 	if (!$window.load) {
@@ -16,8 +17,6 @@ angular.module('app.game', [])
 		.append('<script src="../../stages/start.js"></script>');
 
 		console.log("load: ", $window.load);
-	} else {
-
 	}
 
 });

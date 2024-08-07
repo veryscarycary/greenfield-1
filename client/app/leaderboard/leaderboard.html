@@ -1,4 +1,5 @@
-<div>
+<div ng-controller="LeaderboardController">
+  <link rel="stylesheet" href="./app/leaderboard/leaderboard.css">
   <nav>
     <a href='/game'>Join Game</a> |
     <a href='/profile'>Profile</a> |
@@ -6,8 +7,17 @@
     <a href ng-click='signout()'>Sign Out</a>
   </nav>
 
-  <div>
-    <h3>This is Leaderboard Page</h3>
-    <li ng-repeat= 'user in leaderboard | orderBy: "-highscore"'> {{ user }} </li>
+  <div class="leaderboard-container" ng-controller="LeaderboardController">
+    <h3 class="leaderboard-title">Leaderboard</h3>
+    <table>
+      <tr>
+        <th>Player</th>
+        <th>Highscore</th>
+      </tr>
+      <tr ng-repeat='row in leaderboard | orderBy: "-highscore"'>
+        <td>{{ row.player }}</td>
+        <td>{{ row.highscore }}</td>
+      </tr>
+    </table>
   </div>
 </div>

@@ -9,8 +9,8 @@ var passport = require('passport');
 var session = require('express-session');
 var ip = require('./config/ip.js');
 var port = require('./config/port.js');
-var authRoutes = require('./routes/auth.js');
 var path = require('path');
+var routes = require('./routes/index.js');
 
 require('./config/passport')(passport);
 // var authRoutes = require('./db/authRoutes');
@@ -31,7 +31,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false } // Set to true if using HTTPS
 }));
-app.use('/auth', authRoutes);
+app.use('/api', routes);
 // app.use('/', authRoutes(app, passport));
 
 app.get('*', function(req, res) {

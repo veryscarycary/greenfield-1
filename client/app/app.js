@@ -50,7 +50,7 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   });
 })
 .controller('appCtrl', function($scope, $http, $location, $route) {
-  $scope.user = {};
+  $scope.user = {}
   $scope.signinForm = {};
   $scope.signupForm = {};
   
@@ -67,10 +67,11 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
 
     $http({
   		method: 'POST',
-  		url: '/auth/signin',
+  		url: '/api/auth/signin',
   		data: $scope.signinForm
   	})
-  	.then(function(){
+  	.then(function(res){
+      $scope.user = res.data;
   		$location.path('/game');
   	})
   	.catch(function(){
@@ -86,7 +87,7 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $scope.signup = function() {
   	$http({
   		method: 'POST',
-  		url: '/auth/signup',
+  		url: '/api/auth/signup',
   		data: $scope.signupForm
   	})
   	.then(function(){
@@ -100,7 +101,7 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $scope.signout = function() {
     $http({
       method: 'GET',
-      url: '/signout'
+      url: '/api/auth/signout'
     }).then(function(res) {
       $location.path('signin');
     }, function(err) {
@@ -109,7 +110,7 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   };
   
   $scope.register = function() {
-    $http.post('/auth/register', $scope.user).then(function(response) {
+    $http.post('/api/auth/register', $scope.user).then(function(response) {
       $scope.user = response.data.user;
       $location.path('/');
     });
@@ -117,22 +118,26 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
 })
 .factory('AuthService', function($http, $q) {
   let isAuthenticated = false;
+  let user = null;
 
   const checkAuth = function() {
     const deferred = $q.defer();
 
-    $http.get('/auth/check')
+    $http.get('/api/auth/check')
       .then(function(response) {
         if (response.data.isAuthenticated) {
           isAuthenticated = true;
-          deferred.resolve();
+          user = response.data.user; // Assuming `user` is included in the response
+          deferred.resolve({ isAuthenticated: true, user: user });
         } else {
           isAuthenticated = false;
+          user = null;
           deferred.reject('Not Authenticated');
         }
       })
       .catch(function() {
         isAuthenticated = false;
+        user = null;
         deferred.reject('Not Authenticated');
       });
 
@@ -141,7 +146,8 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
 
   return {
     checkAuth: checkAuth,
-    isAuthenticated: function() { return isAuthenticated; }
+    isAuthenticated: function() { return isAuthenticated; },
+    getSession: function() { return user; }
   };
 }).run(function($rootScope, $location, AuthService) {
   $rootScope.$on('$routeChangeError', function(event, current, previous, rejection) {

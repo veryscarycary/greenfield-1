@@ -23,6 +23,7 @@ App.stage1.prototype = {
     this.load.audio('jump1', '/../../../assets/audio/jump1.wav');
     this.load.audio('jump2', '/../../../assets/audio/jump2.wav');
     this.load.audio('jump3', '/../../../assets/audio/jump3.wav');
+    this.load.audio('coin', '/../../../assets/audio/coin.mp3');
   },
 
   create: function () {
@@ -44,6 +45,7 @@ App.stage1.prototype = {
     this.jump1Sound = this.sound.add('jump1', 0.8, false);
     this.jump2Sound = this.sound.add('jump2', 0.8, false);
     this.jump3Sound = this.sound.add('jump3', 0.8, false);
+    this.coinSound = this.sound.add('coin', 0.8, false);
     this.backgroundMusic = this.sound.add('backgroundMusicLobby', 0.3, true);
     this.backgroundMusic.play();
 
@@ -239,8 +241,9 @@ App.stage1.prototype = {
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
-    this.physics.arcade.collide(player, coin, function () {
+    this.physics.arcade.collide(player, coin, () => {
       player.hasCoin = true;
+      this.coinSound.play();
       coin.kill();
     });
   },

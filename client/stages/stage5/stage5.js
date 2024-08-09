@@ -12,12 +12,19 @@ App.stage5.prototype = {
     this.load.image('ghost', '/../../../assets/ghost.ico', 32, 32);
     this.load.image('cherry', '/../../../assets/cherry.png', 32, 32);
     this.load.image('background', '/../../../assets/space.png');
+
+    // audio
+    this.load.audio('backgroundMusicSpace', '/../../../assets/audio/backgroundMusicSpace.wav');
+
     this.load.script('otherPlayer5', '/stages/stage5/otherPlayer5.js');
   },
 
   create: function() {
     //next stage
-    App.info.nextStage = 'stage2';
+    App.info.nextStage = 'stage1';
+
+    this.backgroundMusic = this.sound.add('backgroundMusicSpace', 0.4, true);
+    this.backgroundMusic.play();
     
     // set game to P2 physics
     this.physics.startSystem(Phaser.Physics.P2JS);
@@ -96,6 +103,7 @@ App.stage5.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.backgroundMusic.stop();
       this.state.start('store');
       App.info.difficulty += 1;
     }, this);

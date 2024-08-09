@@ -24,13 +24,29 @@ App.store.prototype = {
     this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
     this.load.image('snow', '/../../../assets/snow2.png');
     this.load.script('otherplayerstore', '/stages/store/otherplayerstore.js');
+    // audio
+    this.load.audio('jump1', '/../../../assets/audio/jump1.wav');
+    this.load.audio('jump2', '/../../../assets/audio/jump2.wav');
+    this.load.audio('jump3', '/../../../assets/audio/jump3.wav');
+    this.load.audio(
+      'backgroundMusicStore',
+      '/../../../assets/audio/backgroundMusicStore.wav'
+    );
   },
   
   create () {
+    var context = this;
     //gameworld
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.world.setBounds(0, 0, 3240, 600);
     this.physics.arcade.OVERLAP_BIAS = 10;
+
+    // audio
+    this.jump1Sound = this.sound.add('jump1', 0.8, false);
+    this.jump2Sound = this.sound.add('jump2', 0.8, false);
+    this.jump3Sound = this.sound.add('jump3', 0.8, false);
+    this.backgroundMusic = this.sound.add('backgroundMusicStore', 0.3, true);
+    this.backgroundMusic.play();
 
     //backdrop
     library = this.add.tileSprite(0, 0, 864, 160, 'library');
@@ -59,7 +75,8 @@ App.store.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 30, function () {
-      this.state.start(App.info.nextStage);
+      context.backgroundMusic.stop();
+      context.state.start(App.info.nextStage);
     }, this);
 
     timerText = ('Time left in store: ' + this.time.events.duration);
@@ -182,6 +199,7 @@ App.store.prototype = {
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, witchhat, function(player, witchhat) {
+          this.backgroundMusic.stop();
           this.state.start(App.info.nextStage);
         }, null, this);
 
@@ -260,6 +278,7 @@ App.store.prototype = {
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
       witchhat.kill();
       setTimeout(function () {
+        context.backgroundMusic.stop();
         context.state.start(App.info.nextStage); 
       }, 1000);
     }, null, this);

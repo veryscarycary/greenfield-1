@@ -1,5 +1,8 @@
 // DINO WORLD
 
+const NEXT_STAGE_DELAY = 5000; // 5 seconds
+var nextStageTimer = null;
+
 App.stage2 = function(game) {
   console.log('starting stage2');
   App.info.game = game;
@@ -24,12 +27,14 @@ App.stage2.prototype = {
       'backgroundMusicDinos',
       '/../../../assets/audio/backgroundMusicDinos.wav'
     );
+    this.load.audio('coin', '/../../../assets/audio/coin.mp3');
   },
 
   create: function() {
     //next stage
     App.info.nextStage = 'stage3';
 
+    this.coinSound = this.sound.add('coin', 0.8, false);
     this.backgroundMusic = this.sound.add('backgroundMusicDinos', 0.3, true);
     this.backgroundMusic.play();
 
@@ -236,7 +241,8 @@ App.stage2.prototype = {
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
         this.physics.arcade.collide(platforms, App.info.players[i].player);
-        this.physics.arcade.overlap(App.info.players[i].player, coins, function(player, coin) {
+        this.physics.arcade.overlap(App.info.players[i].player, coins, (player, coin) => {
+          this.coinSound.play();
           coin.kill();
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, box);
@@ -258,7 +264,8 @@ App.stage2.prototype = {
     this.physics.arcade.collide(player, platforms);
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
-    this.physics.arcade.overlap(player, coins, function(player, coin) {
+    this.physics.arcade.overlap(player, coins, (player, coin) => {
+      this.coinSound.play();
       coin.kill();
       App.info.gold += 1;
     }, null, this);
@@ -275,11 +282,11 @@ App.stage2.prototype = {
       playerTouching = true;
     });
 
-    if (playersTouching && playerTouching) {
-
-      setTimeout(function () {
+    if (playersTouching && playerTouching && !nextStageTimer) {
+      nextStageTimer = setTimeout(function () {
+        context.backgroundMusic.stop();
         context.state.start('store'); 
-      }, 5000);  
+      }, NEXT_STAGE_DELAY);  
     }
 
 

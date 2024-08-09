@@ -16,12 +16,21 @@ App.stage4.prototype = {
     // this.load.image('skull', '/../../../assets/skull.png');
     this.load.image('skull', '/../../../assets/greenpotion.png');
     this.load.image('heart', '/../../../assets/heart.png');
+
+    // audio
+    this.load.audio('diamond', '/../../../assets/audio/coin.mp3');
+    this.load.audio('backgroundMusicPlatforms', '/../../../assets/audio/backgroundMusicPlatforms.wav');
+
     this.load.script('otherPlayer4', '/stages/stage4/otherPlayer4.js');
   },
 
   create: function() {
     //next stage
     App.info.nextStage = 'stage5';
+
+    this.diamondSound = this.sound.add('diamond', 0.8, false);
+    this.backgroundMusic = this.sound.add('backgroundMusicPlatforms', 0.4, true);
+    this.backgroundMusic.play();
 
     var height = 3000; //set world height here
     var time = 10;
@@ -216,6 +225,7 @@ App.stage4.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.backgroundMusic.stop();
       this.state.start('store');
     }, this);
 

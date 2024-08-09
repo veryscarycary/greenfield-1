@@ -91,6 +91,8 @@ App.stage3.prototype = {
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
     this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
 
+    this.load.audio('coin', '/../../../assets/audio/coin.mp3');
+    this.load.audio('backgroundMusicZelda', '/../../../assets/audio/backgroundMusicZelda.wav');
 
     // this.load.image('ground', '/../../../assets/platform.png');
     this.load.script('otherPlayer3', '/stages/stage3/otherPlayer3.js');
@@ -100,6 +102,10 @@ App.stage3.prototype = {
 
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
+
+    this.coinSound = this.sound.add('coin', 0.8, false);
+    this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.4, true);
+    this.backgroundMusic.play();
 
     App.info.nextStage = 'stage4';
 
@@ -223,6 +229,7 @@ App.stage3.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+      this.backgroundMusic.stop();
       this.state.start('store');
     }, this);
 
@@ -245,7 +252,8 @@ App.stage3.prototype = {
       if (App.info.players[i].alive) { 
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
-        this.physics.arcade.overlap(App.info.players[i].player, coins, function(player, coin) {
+        this.physics.arcade.overlap(App.info.players[i].player, coins, (player, coin) => {
+          this.coinSound.play();
           coin.kill();
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, boxes);
@@ -260,7 +268,8 @@ App.stage3.prototype = {
 
     // player collisions
     this.physics.arcade.collide(player, boxes);
-    this.physics.arcade.overlap(player, coins, function(player, coin) {
+    this.physics.arcade.overlap(player, coins, (player, coin) => {
+      this.coinSound.play();
       coin.kill();
       App.info.gold += 1;
     }, null, this);

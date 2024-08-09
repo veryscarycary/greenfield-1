@@ -6,6 +6,7 @@ angular.module('app.game', [])
 
 	if (!$window.load) {
 		$('#game')
+		.append('<script src="../../stages/stage0/stage0.js"></script>')
 		.append('<script src="../../stages/stage1/stage1.js"></script>')
 		.append('<script src="../../stages/stage1/otherPlayer1.js"></script>')
 		.append('<script src="../../stages/stage5/stage5.js"></script>')

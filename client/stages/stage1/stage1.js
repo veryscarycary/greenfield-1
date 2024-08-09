@@ -1,5 +1,3 @@
-var App = {};
-
 // LOBBY
 
 App.stage1 = function (game) {
@@ -16,6 +14,15 @@ App.stage1.prototype = {
     this.load.image('background', '/../../../assets/space.png');
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
     this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
+
+    // audio
+    this.load.audio(
+      'backgroundMusicLobby',
+      '/../../../assets/audio/backgroundMusicLobby.wav'
+    );
+    this.load.audio('jump1', '/../../../assets/audio/jump1.wav');
+    this.load.audio('jump2', '/../../../assets/audio/jump2.wav');
+    this.load.audio('jump3', '/../../../assets/audio/jump3.wav');
   },
 
   create: function () {
@@ -31,6 +38,14 @@ App.stage1.prototype = {
     this.createLedges(platforms);
 
     this.createPlayer();
+
+    console.log('create');
+    // audio
+    this.jump1Sound = this.sound.add('jump1', 0.8, false);
+    this.jump2Sound = this.sound.add('jump2', 0.8, false);
+    this.jump3Sound = this.sound.add('jump3', 0.8, false);
+    this.backgroundMusic = this.sound.add('backgroundMusicLobby', 0.3, true);
+    this.backgroundMusic.play();
 
     var updatedScore =
       'Score:' +
@@ -84,11 +99,14 @@ App.stage1.prototype = {
 
     console.log('update is running');
 
+    // Play background music when the game starts
+    if (!this.backgroundMusic.isPlaying) {
+      this.backgroundMusic.play();
+    }
 
     // set keyboard bindings, default movement to 0, set player collision and platforms
     var cursors = this.input.keyboard.createCursorKeys();
     player.body.velocity.x = 0;
-    var isTouchingGround = this.physics.arcade.collide(player, platforms);
 
     this.enableCollisions();
     this.enableOtherPlayersCollisions();
@@ -100,10 +118,9 @@ App.stage1.prototype = {
     this.setPlayerAnimations(cursors);
 
     //  Allow the player to jump if they are touching the ground.
-    this.setPlayerJumpPhysics(cursors, isTouchingGround);
+    this.setPlayerJumpPhysics(cursors);
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
-
 
     // if (this.key1.isDown) {
     //   this.state.start('stage4');
@@ -164,7 +181,7 @@ App.stage1.prototype = {
     this.coolText.tint = 0xff00ff;
   },
 
-  createLobbyCountdownText: function() {
+  createLobbyCountdownText: function () {
     var text = 'Game starting in...';
     this.lobbyText = this.add.bitmapText(
       this.world.centerX - 210,
@@ -179,12 +196,17 @@ App.stage1.prototype = {
     this.createLobbyTimer();
   },
 
-  createLobbyTimer: function() {
+  createLobbyTimer: function () {
     if (!this.lobbyCountdownText) {
-      this.lobbyCountdownText = this.add.text(this.world.centerX + 160, 45, this.lobbyCountdown, {
-        fontSize: '50px',
-        fill: 'gold',
-      });
+      this.lobbyCountdownText = this.add.text(
+        this.world.centerX + 160,
+        45,
+        this.lobbyCountdown,
+        {
+          fontSize: '50px',
+          fill: 'gold',
+        }
+      );
     } else {
       this.lobbyCountdownText.text = this.lobbyCountdown;
     }
@@ -192,7 +214,8 @@ App.stage1.prototype = {
     this.lobbyTimer = setTimeout(() => {
       this.lobbyCountdown -= 1;
 
-      if (this.lobbyCountdown <= 0)  {
+      if (this.lobbyCountdown <= 0) {
+        this.backgroundMusic.stop();
         this.state.start('stage2');
       } else {
         this.lobbyTimer = this.createLobbyTimer();
@@ -212,16 +235,17 @@ App.stage1.prototype = {
   },
 
   enableCollisions: function () {
+    this.physics.arcade.collide(player, platforms);
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
-    this.physics.arcade.collide(player, coin, function() {
+    this.physics.arcade.collide(player, coin, function () {
       player.hasCoin = true;
       coin.kill();
     });
   },
 
-  enableOtherPlayersCollisions: function() {
+  enableOtherPlayersCollisions: function () {
     // for each of the connected players, run each player's update fn
     // and set collision between all players
     for (var i = 0; i < App.info.players.length; i++) {
@@ -240,16 +264,19 @@ App.stage1.prototype = {
       }
     }
   },
-  
-  doesAnyPlayerHaveCoin: function() {
-    return App.info.player.hasCoin || App.info.players.some((player) => player.hasCoin);
+
+  doesAnyPlayerHaveCoin: function () {
+    return (
+      App.info.player.hasCoin ||
+      App.info.players.some((player) => player.hasCoin)
+    );
   },
 
   isOnlyOnePlayer: function () {
     return App.info.players.length === 0;
   },
 
-  setPlayerAnimations: function(cursors) {
+  setPlayerAnimations: function (cursors) {
     if (cursors.left.isDown) {
       player.body.velocity.x = -150 * App.info.speed;
       player.animations.play('left');
@@ -262,15 +289,17 @@ App.stage1.prototype = {
     }
   },
 
-  setPlayerJumpPhysics: function(cursors, isTouchingGround) {
-    if (cursors.up.isDown && player.body.touching.down && isTouchingGround) {
+  setPlayerJumpPhysics: function (cursors) {
+    if (cursors.up.isDown && player.body.touching.down) {
+      var jumpSounds = [this.jump1Sound, this.jump2Sound, this.jump3Sound];
+      jumpSounds[Math.floor(Math.random() * jumpSounds.length)].play();
+      
       App.info.score += 10;
-
       player.body.velocity.y = -300 * App.info.jump;
     }
   },
 
-  startLobbyCountdown: function() {
+  startLobbyCountdown: function () {
     const COUNTDOWN_SECS = 10;
 
     if (!this.lobbyCountdown) {
@@ -401,7 +430,7 @@ App.info = {
     );
   },
 
-  movePlayer: function (data, ) {
+  movePlayer: function (data) {
     const MOVEMENT_BUFFER = 30;
 
     var movedPlayer = App.info.findPlayer(data.id);

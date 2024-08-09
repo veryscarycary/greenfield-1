@@ -19,11 +19,19 @@ App.stage2.prototype = {
     this.load.spritesheet('mayor', '/../../../assets/portraits2.png', 210, 150);
     this.load.spritesheet('trex', '/../../../assets/trex.png', 222, 145);
     this.load.spritesheet('door', '/../../../assets/door.png', 64, 64);
+    // audio
+    this.load.audio(
+      'backgroundMusicDinos',
+      '/../../../assets/audio/backgroundMusicDinos.wav'
+    );
   },
 
   create: function() {
     //next stage
     App.info.nextStage = 'stage3';
+
+    this.backgroundMusic = this.sound.add('backgroundMusicDinos', 0.3, true);
+    this.backgroundMusic.play();
 
     //gameworld
     this.physics.startSystem(Phaser.Physics.ARCADE);
@@ -213,6 +221,11 @@ App.stage2.prototype = {
     scoreText.text = updatedScore;
     playersTouching = false;
     playerTouching = false;
+
+    // Play background music when the game starts
+    if (!this.backgroundMusic.isPlaying) {
+      this.backgroundMusic.play();
+    }
 
     if ( App.info.players.length === 0 ) {
       playersTouching = true;

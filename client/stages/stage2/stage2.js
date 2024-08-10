@@ -2,6 +2,7 @@
 
 const NEXT_STAGE_DELAY = 5000; // 5 seconds
 var nextStageTimer = null;
+var hurtTimer = null;
 
 App.stage2 = function(game) {
   console.log('starting stage2');
@@ -28,6 +29,12 @@ App.stage2.prototype = {
       '/../../../assets/audio/backgroundMusicDinos.wav'
     );
     this.load.audio('coin', '/../../../assets/audio/coin.mp3');
+    this.load.audio('hurt1', '/../../../assets/audio/hurt1.wav');
+    this.load.audio('hurt2', '/../../../assets/audio/hurt2.wav');
+    this.load.audio('hurt3', '/../../../assets/audio/hurt3.wav');
+    this.load.audio('jump1', '/../../../assets/audio/jump1.wav');
+    this.load.audio('jump2', '/../../../assets/audio/jump2.wav');
+    this.load.audio('jump3', '/../../../assets/audio/jump3.wav');
   },
 
   create: function() {
@@ -35,6 +42,12 @@ App.stage2.prototype = {
     App.info.nextStage = 'stage3';
 
     this.coinSound = this.sound.add('coin', 0.8, false);
+    this.hurt1Sound = this.sound.add('hurt1', 0.8, false);
+    this.hurt2Sound = this.sound.add('hurt2', 0.8, false);
+    this.hurt3Sound = this.sound.add('hurt3', 0.8, false);
+    this.jump1Sound = this.sound.add('jump1', 0.8, false);
+    this.jump2Sound = this.sound.add('jump2', 0.8, false);
+    this.jump3Sound = this.sound.add('jump3', 0.8, false);
     this.backgroundMusic = this.sound.add('backgroundMusicDinos', 0.3, true);
     this.backgroundMusic.play();
 
@@ -271,11 +284,11 @@ App.stage2.prototype = {
     }, null, this);
 
     this.physics.arcade.overlap(player, raptors, function (player, raptor){
-      App.info.health -= .1 * App.info.difficulty;
+      this.hurtPlayer(.1 * App.info.difficulty);
     }, null, this);
 
     this.physics.arcade.overlap(player, trexes, function (player, trex){
-      App.info.health -= .2 * App.info.difficulty;
+      this.hurtPlayer(.2 * App.info.difficulty);
     }, null, this);
 
     this.physics.arcade.overlap(player, door, function() {
@@ -288,9 +301,6 @@ App.stage2.prototype = {
         context.state.start('store'); 
       }, NEXT_STAGE_DELAY);  
     }
-
-
-
 
     //controls
     var cursors = this.input.keyboard.createCursorKeys();
@@ -307,14 +317,9 @@ App.stage2.prototype = {
     } else {
       player.animations.stop();
       player.frame = 4;
-
-    }
-    if (cursors.up.isDown && player.body.touching.down) {
-      App.info.score += 10;
-      player.body.velocity.y = -600 * App.info.jump;
-      scoreText.text = 'Score:' + App.info.score;
     }
 
+    this.setPlayerJumpPhysics(cursors);
 
     //death check
     if (App.info.health <= 0) {
@@ -335,5 +340,30 @@ App.stage2.prototype = {
       angle: player.angle
     });
 
+  },
+
+  hurtPlayer: function(damage) {
+    App.info.health -= damage;
+    if (!hurtTimer) {
+      var hurtSounds = [this.hurt1Sound, this.hurt2Sound, this.hurt3Sound];
+      hurtSounds[Math.floor(Math.random() * hurtSounds.length)].play();
+      
+      player.tint = 0xff0000;
+      hurtTimer = setTimeout(function() {
+        player.tint = 0xffffff;
+        hurtTimer = null;
+      }, 200);
+    }
+  },
+
+  setPlayerJumpPhysics: function(cursors) {
+    if (cursors.up.isDown && player.body.touching.down) {
+      var jumpSounds = [this.jump1Sound, this.jump2Sound, this.jump3Sound];
+      jumpSounds[Math.floor(Math.random() * jumpSounds.length)].play();
+
+      App.info.score += 10;
+      player.body.velocity.y = -600 * App.info.jump;
+      scoreText.text = 'Score:' + App.info.score;
+    }
   }
 };  

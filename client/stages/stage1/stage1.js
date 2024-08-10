@@ -46,7 +46,7 @@ App.stage1.prototype = {
     this.jump2Sound = this.sound.add('jump2', 0.8, false);
     this.jump3Sound = this.sound.add('jump3', 0.8, false);
     this.coinSound = this.sound.add('coin', 0.8, false);
-    this.backgroundMusic = this.sound.add('backgroundMusicLobby', 0.3, true);
+    this.backgroundMusic = this.sound.add('backgroundMusicLobby', 0.1, true);
     this.backgroundMusic.play();
 
     var updatedScore =

@@ -442,6 +442,7 @@ App.stage4.prototype = {
     scoreText.text = 'Score: ' + App.info.score;
 
     if (itemName === 'diamond') {
+      this.diamondSound.play();
       App.info.gold++;
     }
   },

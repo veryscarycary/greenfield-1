@@ -11,3 +11,4 @@
 
   game.state.start('stage0');
 })();
+

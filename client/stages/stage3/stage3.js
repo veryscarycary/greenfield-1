@@ -92,6 +92,7 @@ App.stage3.prototype = {
     this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
 
     this.load.audio('coin', '/../../../assets/audio/coin.mp3');
+    this.load.audio('arrow', '/../../../assets/audio/arrow.wav');
     this.load.audio('backgroundMusicZelda', '/../../../assets/audio/backgroundMusicZelda.wav');
 
     // this.load.image('ground', '/../../../assets/platform.png');
@@ -104,10 +105,12 @@ App.stage3.prototype = {
     this.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.coinSound = this.sound.add('coin', 0.8, false);
+    this.arrowSound = this.sound.add('arrow', 0.5, false);
     this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.4, true);
     this.backgroundMusic.play();
 
     App.info.nextStage = 'stage4';
+    App.info.lastDirection = 'left';
 
 
     let x = -500;
@@ -280,7 +283,7 @@ App.stage3.prototype = {
     
     //////// ENEMY ARROWS
     App.info.socket.on('reportShotsFired', function(data) {
-      fireArrow(data.direction, data.shooter);
+      this.fireArrow(data.direction, data.shooter);
     });
 
 
@@ -290,44 +293,7 @@ App.stage3.prototype = {
     player.body.velocity.x = 0;
     player.body.velocity.y = 0;
 
-    var key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-    // this.physics.arcade.collide(player, platforms);
-    
-    if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.left.isDown) {
-      App.info.socket.emit('shotsFired', {direction: 'left'});
-      player.animations.play('attackLeft');
-      fireArrow('left');
-    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.right.isDown) {
-      App.info.socket.emit('shotsFired', {direction: 'right'});
-      player.animations.play('attackRight');
-      fireArrow('right');
-    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.up.isDown) {
-      App.info.socket.emit('shotsFired', {direction: 'up'});
-      player.animations.play('attackUp');
-      fireArrow('up');
-    } else if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && cursors.down.isDown) {
-      App.info.socket.emit('shotsFired', {direction: 'down'});
-      player.animations.play('attackDown');
-      fireArrow('down');
-    }
-
-    else if (cursors.left.isDown) {
-      player.body.velocity.x = -150 * App.info.speed;
-      player.animations.play('left');
-    } else if (cursors.right.isDown) {
-      player.body.velocity.x = 150 * App.info.speed;
-      player.animations.play('right');
-    } else if (cursors.up.isDown) {
-      player.body.velocity.y = -150 * App.info.speed;
-      player.animations.play('up');
-    } else if (cursors.down.isDown) {
-      player.body.velocity.y = 150 * App.info.speed;
-      player.animations.play('down');
-    } else {
-      player.animations.stop();
-      player.frame = 12;
-    }
+    this.handleUserInput(cursors, player);
 
     land.tilePosition.x = -this.camera.x;
     land.tilePosition.y = -this.camera.y;
@@ -350,6 +316,81 @@ App.stage3.prototype = {
       y: player.y
     });
 
+  },
+
+  fireArrow: function(direction, shooter) {
+    shooter = shooter || player;
+  
+    var fire = function (xORy, speed, spacingx, spacingy, shooter) {
+      arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
+      arrow.body.velocity[xORy] = speed;
+      arrowTime = App.info.game.time.now + 200;
+    };
+  
+    //  To avoid them being allowed to fire too fast we set a time limit
+    if (App.info.game.time.now > arrowTime) {
+      //  Grab the first arrow we can from the pool
+      arrow = arrows.getFirstExists(false);
+      this.arrowSound.play();
+  
+      if (arrow && direction === 'up') {
+          //  And fire it
+        fire('y', -400, 0, -60, shooter);
+      } else if (arrow && direction === 'down') {
+        fire('y', 400, 0, 60, shooter);
+      } else if (arrow && direction === 'left') {
+        fire('x', -400, -60, 0, shooter);
+      } else if (arrow && direction === 'right') {
+        fire('x', 400, 60, 0, shooter);
+      }
+    }
+  },
+
+  handleUserInput: function(cursors, player) {
+    if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+      if (cursors.left.isDown) {
+        App.info.socket.emit('shotsFired', {direction: 'left'});
+        player.animations.play('attackLeft');
+        this.fireArrow('left');
+      } else if (cursors.right.isDown) {
+        App.info.socket.emit('shotsFired', {direction: 'right'});
+        player.animations.play('attackRight');
+        this.fireArrow('right');
+      } else if (cursors.up.isDown) {
+        App.info.socket.emit('shotsFired', {direction: 'up'});
+        player.animations.play('attackUp');
+        this.fireArrow('up');
+      } else if (cursors.down.isDown) {
+        App.info.socket.emit('shotsFired', {direction: 'down'});
+        player.animations.play('attackDown');
+        this.fireArrow('down');
+      } else {
+        App.info.socket.emit('shotsFired', {direction: App.info.lastDirection});
+        player.animations.play('attack' + App.info.lastDirection[0].toUpperCase() + App.info.lastDirection.slice(1));
+        this.fireArrow(App.info.lastDirection);
+      }
+    }
+  
+    else if (cursors.left.isDown) {
+      player.body.velocity.x = -150 * App.info.speed;
+      player.animations.play('left');
+      App.info.lastDirection = 'left';
+    } else if (cursors.right.isDown) {
+      player.body.velocity.x = 150 * App.info.speed;
+      player.animations.play('right');
+      App.info.lastDirection = 'right';
+    } else if (cursors.up.isDown) {
+      player.body.velocity.y = -150 * App.info.speed;
+      player.animations.play('up');
+      App.info.lastDirection = 'up';
+    } else if (cursors.down.isDown) {
+      player.body.velocity.y = 150 * App.info.speed;
+      player.animations.play('down');
+      App.info.lastDirection = 'down';
+    } else {
+      player.animations.stop();
+      player.frame = 12;
+    }
   }
 };
 
@@ -358,34 +399,6 @@ function setupSmoke(smoke) {
   smoke.anchor.y = .1;
   smoke.animations.add('splat');
 }
-
-function fireArrow (direction, shooter) {
-  shooter = shooter || player;
-
-  var fire = function (xORy, speed, spacingx, spacingy, shooter) {
-    arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
-    arrow.body.velocity[xORy] = speed;
-    arrowTime = App.info.game.time.now + 200;
-  };
-
-  //  To avoid them being allowed to fire too fast we set a time limit
-  if (App.info.game.time.now > arrowTime) {
-    //  Grab the first arrow we can from the pool
-    arrow = arrows.getFirstExists(false);
-
-    if (arrow && direction === 'up') {
-        //  And fire it
-      fire('y', -400, 0, -60, shooter);
-    } else if (arrow && direction === 'down') {
-      fire('y', 400, 0, 60, shooter);
-    } else if (arrow && direction === 'left') {
-      fire('x', -400, -60, 0, shooter);
-    } else if (arrow && direction === 'right') {
-      fire('x', 400, 60, 0, shooter);
-    }
-  }
-}
-
 
 function startNextStage (context) {
   context.state.start('store');

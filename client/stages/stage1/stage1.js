@@ -124,8 +124,9 @@ App.stage1.prototype = {
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    // if (this.key1.isDown) {
-    //   this.state.start('stage4');
+    // if (cursors.down.isDown) {
+    //   this.backgroundMusic.stop();
+    //   this.state.start('stage3');
     // }
 
     // every frame, each player will emit their x,y,angle to every player

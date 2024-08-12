@@ -106,7 +106,7 @@ App.stage3.prototype = {
 
     this.coinSound = this.sound.add('coin', 0.8, false);
     this.arrowSound = this.sound.add('arrow', 0.5, false);
-    this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.4, true);
+    this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.2, true);
     this.backgroundMusic.play();
 
     App.info.nextStage = 'stage4';
@@ -155,13 +155,7 @@ App.stage3.prototype = {
     player.animations.add('attackLeft', [10], 16, true);
     player.animations.add('attackDown', [14], 16, true);
 
-
-    var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
-    timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
-    timerAndScoreText.fixedToCamera= true;
-
     var style = {fill: "white"};
-
 
     //creates coins
     coins = this.add.group();
@@ -203,6 +197,21 @@ App.stage3.prototype = {
 
     // App.info.socket.emit('startTimer');
 
+    var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
+    timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
+    timerAndScoreText.fixedToCamera= true;
+
+    var text =
+      ' Attack other players\nby tapping the spacebar!';
+    this.instructionText = this.add.bitmapText(
+      this.world.centerX + 260,
+      this.world.centerY + 550,
+      'pixel',
+      text,
+      16
+    );
+    this.instructionText.fixedToCamera = true;
+    this.instructionText.tint = 0xff00ff;
 
     //item magic
     player.tint = App.info.color;

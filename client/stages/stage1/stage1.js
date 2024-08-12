@@ -313,7 +313,7 @@ App.stage1.prototype = {
 };
 
 App.info = {
-  // this is the source of truth of info for each stage
+  // this is the source of truth of info for the game overall
   score: 0,
   health: 100,
   gold: 0,

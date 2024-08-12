@@ -1,6 +1,5 @@
 // DINO WORLD
-
-const NEXT_STAGE_DELAY = 5000; // 5 seconds
+var NEXT_STAGE_DELAY = 5000; // 5 seconds
 var nextStageTimer = null;
 var hurtTimer = null;
 

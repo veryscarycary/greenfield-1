@@ -57,9 +57,10 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $scope.$on( "$routeChangeStart", function(event, next, current) {
     console.log('ROUTE CHANGE');
 
-    // TODO - CHECK ON THIS CODE TO SEE IF IT WORKS
     App.info.removePlayer(App.info.socket);
     App.info.socket.disconnect();
+    App.info.game.destroy();
+    App.info.game = null;
   });
 
   $scope.signin = function() {

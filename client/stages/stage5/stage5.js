@@ -23,7 +23,7 @@ App.stage5.prototype = {
     //next stage
     App.info.nextStage = 'stage1';
 
-    this.backgroundMusic = this.sound.add('backgroundMusicSpace', 0.4, true);
+    this.backgroundMusic = this.sound.add('backgroundMusicSpace', 0.3, true);
     this.backgroundMusic.play();
     
     // set game to P2 physics

@@ -28,6 +28,10 @@ App.store.prototype = {
     this.load.audio('jump1', '/../../../assets/audio/jump1.wav');
     this.load.audio('jump2', '/../../../assets/audio/jump2.wav');
     this.load.audio('jump3', '/../../../assets/audio/jump3.wav');
+    this.load.audio('hurt1', '/../../../assets/audio/hurt1.wav');
+    this.load.audio('hurt2', '/../../../assets/audio/hurt2.wav');
+    this.load.audio('hurt3', '/../../../assets/audio/hurt3.wav');
+    this.load.audio('heal', '/../../../assets/audio/heal.mp3');
     this.load.audio(
       'backgroundMusicStore',
       '/../../../assets/audio/backgroundMusicStore.wav'
@@ -42,10 +46,14 @@ App.store.prototype = {
     this.physics.arcade.OVERLAP_BIAS = 10;
 
     // audio
-    this.jump1Sound = this.sound.add('jump1', 0.8, false);
-    this.jump2Sound = this.sound.add('jump2', 0.8, false);
-    this.jump3Sound = this.sound.add('jump3', 0.8, false);
-    this.backgroundMusic = this.sound.add('backgroundMusicStore', 0.3, true);
+    this.healSound = this.sound.add('heal', 0.3, false);
+    this.jump1Sound = this.sound.add('jump1', 0.3, false);
+    this.jump2Sound = this.sound.add('jump2', 0.3, false);
+    this.jump3Sound = this.sound.add('jump3', 0.3, false);
+    this.hurt1Sound = this.sound.add('hurt1', 0.3, false);
+    this.hurt2Sound = this.sound.add('hurt2', 0.3, false);
+    this.hurt3Sound = this.sound.add('hurt3', 0.3, false);
+    this.backgroundMusic = this.sound.add('backgroundMusicStore', 0.2, true);
     this.backgroundMusic.play();
 
     //backdrop
@@ -264,10 +272,9 @@ App.store.prototype = {
 
     //player item grabbing
     this.physics.arcade.overlap(player, skull, function(player, skull) {
-      skull.kill();
-      App.info.score = 0;
+      skull.kill(); 
+      this.hurtPlayer();
       App.info.health = 1;
-      App.info.gold = 0;
       App.info.color = 0xffffff;
       App.info.speed = 1;
       App.info.weight = 1;
@@ -318,6 +325,7 @@ App.store.prototype = {
     this.physics.arcade.overlap(player, carrot, function(player, carrot) {
       if (App.info.gold >= 15) {
         carrot.kill();
+        this.healSound.play();
         App.info.health += 30;
         App.info.gold -= 15;
       }  
@@ -361,6 +369,7 @@ App.store.prototype = {
     this.physics.arcade.overlap(player, steak, function(player, steak) {
       if (App.info.gold >= 30) {
         steak.kill();
+        this.healSound.play();
         App.info.health = App.info.health * 2;
         App.info.gold -= 30;
       }  
@@ -399,5 +408,19 @@ App.store.prototype = {
       angle: player.angle
     });
 
+  },
+
+  hurtPlayer: function(damage) {
+    App.info.health -= damage;
+    if (!hurtTimer) {
+      var hurtSounds = [this.hurt1Sound, this.hurt2Sound, this.hurt3Sound];
+      hurtSounds[Math.floor(Math.random() * hurtSounds.length)].play();
+      
+      player.tint = 0xff0000;
+      hurtTimer = setTimeout(function() {
+        player.tint = 0xffffff;
+        hurtTimer = null;
+      }, 200);
+    }
   },
 };    

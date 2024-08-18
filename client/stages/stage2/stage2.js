@@ -40,13 +40,13 @@ App.stage2.prototype = {
     //next stage
     App.info.nextStage = 'stage3';
 
-    this.coinSound = this.sound.add('coin', 0.8, false);
-    this.hurt1Sound = this.sound.add('hurt1', 0.8, false);
-    this.hurt2Sound = this.sound.add('hurt2', 0.8, false);
-    this.hurt3Sound = this.sound.add('hurt3', 0.8, false);
-    this.jump1Sound = this.sound.add('jump1', 0.8, false);
-    this.jump2Sound = this.sound.add('jump2', 0.8, false);
-    this.jump3Sound = this.sound.add('jump3', 0.8, false);
+    this.coinSound = this.sound.add('coin', 0.1, false);
+    this.hurt1Sound = this.sound.add('hurt1', 0.3, false);
+    this.hurt2Sound = this.sound.add('hurt2', 0.3, false);
+    this.hurt3Sound = this.sound.add('hurt3', 0.3, false);
+    this.jump1Sound = this.sound.add('jump1', 0.3, false);
+    this.jump2Sound = this.sound.add('jump2', 0.3, false);
+    this.jump3Sound = this.sound.add('jump3', 0.3, false);
     this.backgroundMusic = this.sound.add('backgroundMusicDinos', 0.3, true);
     this.backgroundMusic.play();
 

@@ -42,10 +42,10 @@ App.stage1.prototype = {
 
     console.log('create');
     // audio
-    this.jump1Sound = this.sound.add('jump1', 0.8, false);
-    this.jump2Sound = this.sound.add('jump2', 0.8, false);
-    this.jump3Sound = this.sound.add('jump3', 0.8, false);
-    this.coinSound = this.sound.add('coin', 0.8, false);
+    this.jump1Sound = this.sound.add('jump1', 0.3, false);
+    this.jump2Sound = this.sound.add('jump2', 0.3, false);
+    this.jump3Sound = this.sound.add('jump3', 0.3, false);
+    this.coinSound = this.sound.add('coin', 0.1, false);
     this.backgroundMusic = this.sound.add('backgroundMusicLobby', 0.1, true);
     this.backgroundMusic.play();
 
@@ -124,10 +124,10 @@ App.stage1.prototype = {
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    // if (cursors.down.isDown) {
-    //   this.backgroundMusic.stop();
-    //   this.state.start('stage3');
-    // }
+    if (cursors.down.isDown) {
+      this.backgroundMusic.stop();
+      this.state.start('store');
+    }
 
     // every frame, each player will emit their x,y,angle to every player
     // including self

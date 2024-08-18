@@ -19,6 +19,10 @@ App.stage4.prototype = {
 
     // audio
     this.load.audio('diamond', '/../../../assets/audio/coin.mp3');
+    this.load.audio('star', '/../../../assets/audio/star.wav');
+    this.load.audio('heal', '/../../../assets/audio/heal.mp3');
+    this.load.audio('poison', '/../../../assets/audio/poison.wav');
+    this.load.audio('starPower', '/../../../assets/audio/starPower.wav');
     this.load.audio('backgroundMusicPlatforms', '/../../../assets/audio/backgroundMusicPlatforms.wav');
 
     this.load.script('otherPlayer4', '/stages/stage4/otherPlayer4.js');
@@ -28,8 +32,12 @@ App.stage4.prototype = {
     //next stage
     App.info.nextStage = 'stage5';
 
-    this.diamondSound = this.sound.add('diamond', 0.8, false);
-    this.backgroundMusic = this.sound.add('backgroundMusicPlatforms', 0.4, true);
+    this.diamondSound = this.sound.add('diamond', 0.1, false);
+    this.healSound = this.sound.add('heal', 0.3, false);
+    this.starSound = this.sound.add('star', 0.3, false);
+    this.poisonSound = this.sound.add('poison', 0.3, false);
+    this.starPowerSound = this.sound.add('starPower', 0.3, true);
+    this.backgroundMusic = this.sound.add('backgroundMusicPlatforms', 0.3, true);
     this.backgroundMusic.play();
 
     var height = 3000; //set world height here
@@ -226,6 +234,7 @@ App.stage4.prototype = {
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       this.backgroundMusic.stop();
+      this.starPowerSound.stop();
       this.state.start('store');
     }, this);
 
@@ -243,7 +252,7 @@ App.stage4.prototype = {
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
         this.physics.arcade.overlap(App.info.players[i].player, rainbowStar, function(otherPlayer, rainbowStar) {
-          this.collect(rainbowStar, 5, true, otherPlayer);
+          this.collectRainbow(rainbowStar, 5, true, otherPlayer);
         }, null, this);
         this.physics.arcade.overlap(App.info.players[i].player, skull, function(otherPlayer, skull) {
           this.collectPoison(skull, otherPlayer);
@@ -277,14 +286,14 @@ App.stage4.prototype = {
 
     //collect stars
     this.physics.arcade.overlap(player, stars, function(player, star) {
-      this.collect(star, 1, false, player);
+      this.collectStar(star, 1);
     }.bind(this), function() {
       return this.checkPoison(false); 
     }.bind(this), this);
 
     //collect rainbowStars
     this.physics.arcade.overlap(player, rainbowStars, function(player, rainbowStar) {
-      this.collect(rainbowStar, 5, true, player, 'rainbow');
+      this.collectRainbowStar(rainbowStar, player);
     }.bind(this), function() {
       if (dead) {
         return false;
@@ -295,14 +304,14 @@ App.stage4.prototype = {
 
     //collect diamonds
     this.physics.arcade.overlap(player, diamonds, function(player, diamond) {
-      this.collect(diamond, 25, false, player, 'diamond');
+      this.collectDiamond(diamond);
     }.bind(this), function() {
       return this.checkPoison(false);
     }.bind(this), this);
 
     //collect prizes
     this.physics.arcade.overlap(player, prizes, function(player, prize) {
-      this.collect(prize, 100, false, player);
+      this.collectPrize(prize, 500, false, player);
     }.bind(this), function() {
       return this.checkPoison(false);
     }.bind(this), this);
@@ -428,26 +437,39 @@ App.stage4.prototype = {
 
     return rainbow;
   },
-  collect: function(item, points, rainbow, player, itemName) {
-    itemName = itemName || 'other';
+  collectPrize: function(item, points) {
     item.kill();
-    if (rainbow) {
-      this.rainbowPower(10000, player); //TODO...
+    this.diamondSound.play();
+    App.info.gold += 30;
+    if (special) {
+      App.info.score += (2 * points); //each star worth 3 extra points during special
+    } else {
+      App.info.score += points;
     }
+    scoreText.text = 'Score: ' + App.info.score;
+  },
+  collectStar: function(item, points) {
+    item.kill();
+    this.starSound.play();
     if (special) {
       App.info.score += (points + 3); //each star worth 3 extra points during special
     } else {
       App.info.score += points;
     }
     scoreText.text = 'Score: ' + App.info.score;
-
-    if (itemName === 'diamond') {
-      this.diamondSound.play();
-      App.info.gold++;
-    }
+  },
+  collectDiamond: function(item) {
+    item.kill();
+    this.diamondSound.play();
+    App.info.gold++;
+  },
+  collectRainbowStar: function(item, player) {
+    item.kill();
+    this.enableStarPower(10000, player);
   },
   collectHeart: function(item, player) {
     item.kill();
+    this.healSound.play();
     App.info.health += 10;
     //console.log("poison is collected");
     if (poison) {
@@ -457,6 +479,7 @@ App.stage4.prototype = {
   collectPoison: function(item, player) {
     item.kill();
     poison = true;
+    this.poisonSound.play();
     App.info.health -= (5 * App.info.difficulty);
     //console.log('poison is collected: ', poison);
     player.tint = '0x000000';
@@ -483,22 +506,45 @@ App.stage4.prototype = {
       return true;
     }
   },
-  rainbowPower: function(timeout, player) {
+  enableStarPower: function(timeout, player) {
     special = true; //turn on special: jumping powers and each start worth more
 
-    var rainbow = this.makeRainbow(player);
+    if (this.starPowerTimeout) {
+      clearTimeout(this.starPowerTimeout);
+      this.starPowerTimeout = null;
+    }
+
+    if (this.backgroundMusic.isPlaying) {
+      this.backgroundMusic.pause();
+    }
+
+    if (this.starPowerSound.isPlaying) {
+      this.starPowerSound.stop();
+    };
+
+    this.starPowerSound.play();
+
+    if (!this.starPowerRainbowInterval) {
+      this.starPowerRainbowInterval = this.makeRainbow(player);
+    }
+
     player.scale.setTo(2, 2);
     player.y = player.y - 10;
     // player.y = player.y + 15;
     // player.y = player.y - 10;
-    setTimeout(function() {
-      clearInterval(rainbow);
+    this.starPowerTimeout = setTimeout(() => {
+      clearInterval(this.starPowerRainbowInterval);
       player.tint = 0xFFFFFF; //remove tint
       player.scale.setTo(1, 1);
       special = false;
+
+      if (this.starPowerSound.isPlaying) {
+        this.starPowerSound.pause();
+        this.backgroundMusic.play();
+      }
     }, timeout);
   },
-  // rainbowPowerOther: function(timeout, otherPlayer) {
+  // enableStarPowerOther: function(timeout, otherPlayer) {
   //   specialOther = true; //turn on special: jumping powers and each start worth more
 
   //   var rainbow = this.makeRainbow(otherPlayer);

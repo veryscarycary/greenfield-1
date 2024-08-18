@@ -104,8 +104,8 @@ App.stage3.prototype = {
   create: function() {
     this.physics.startSystem(Phaser.Physics.ARCADE);
 
-    this.coinSound = this.sound.add('coin', 0.8, false);
-    this.arrowSound = this.sound.add('arrow', 0.5, false);
+    this.coinSound = this.sound.add('coin', 0.1, false);
+    this.arrowSound = this.sound.add('arrow', 0.3, false);
     this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.2, true);
     this.backgroundMusic.play();
 

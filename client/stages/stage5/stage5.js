@@ -8,6 +8,9 @@ App.stage5 = function(game) {
 
 App.stage5.prototype = {
   preload: function() {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+    
     this.load.image('pacman', '/../../../assets/pacman.png', 32, 32);
     this.load.image('ghost', '/../../../assets/ghost.ico', 32, 32);
     this.load.image('cherry', '/../../../assets/cherry.png', 32, 32);
@@ -103,8 +106,9 @@ App.stage5.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
-      this.backgroundMusic.stop();
-      this.state.start('store');
+      // this.backgroundMusic.stop();
+      // this.state.start('store');
+      App.info.socket.emit('endGame');
       App.info.difficulty += 1;
     }, this);
 

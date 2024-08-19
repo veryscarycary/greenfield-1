@@ -7,6 +7,9 @@ App.stage4 = function(game) {
 
 App.stage4.prototype = {
   preload: function() {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+    
     this.load.image('sky', '/../../../assets/sky.png');
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
@@ -233,9 +236,10 @@ App.stage4.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
-      this.backgroundMusic.stop();
+      // this.backgroundMusic.stop();
       this.starPowerSound.stop();
-      this.state.start('store');
+      App.info.socket.emit('nextStage', { from: 'stage4' });
+      // this.state.start('store');
     }, this);
 
     //this is important to bring in your players!!

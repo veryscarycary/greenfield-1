@@ -8,6 +8,9 @@ App.stage1 = function (game) {
 
 App.stage1.prototype = {
   preload: function () {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.bitmapFont('pixel', '/../assets/font.png', '/../assets/font.fnt');
@@ -66,16 +69,18 @@ App.stage1.prototype = {
     this.createLobbyText();
 
     App.info.socketHandlers();
-    App.info.socket.emit('connect'); // logs connected, clean slate for players,
+
+    // logs connected, clean slate for players,
     // and then adds self as a player to player list
+    App.info.socketConnect();
 
     // this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     // creates coin
-    this.createCoin();
+    this.coin = this.createCoin();
 
     // box
-    this.createBox();
+    this.box = this.createBox();
 
     //item magic
     player.tint = App.info.color;
@@ -89,6 +94,9 @@ App.stage1.prototype = {
   },
 
   update: function () {
+    console.log('this.box', this.box);
+    console.log('App.info.stage.box', App.info.stage.box);
+
     var context = this;
     var updatedScore =
       'Score:' +
@@ -113,9 +121,9 @@ App.stage1.prototype = {
     this.enableCollisions();
     this.enableOtherPlayersCollisions();
 
-    if (this.doesAnyPlayerHaveCoin()) {
-      this.startLobbyCountdown();
-    }
+    // if (this.doesAnyPlayerHaveCoin()) { // BEFORE SERVER SIDE LOGIC
+    //   this.startLobbyCountdown();
+    // }
 
     this.setPlayerAnimations(cursors);
 
@@ -136,6 +144,11 @@ App.stage1.prototype = {
       y: player.y,
       angle: player.angle,
     });
+
+    App.info.socket.emit('stage1.moveBox', {
+      x: this.box.x,
+      y: this.box.y,
+    });
   },
 
   // Stage1 Utils
@@ -144,6 +157,7 @@ App.stage1.prototype = {
     box = this.add.sprite(400, 0, 'box');
     this.physics.arcade.enable(box);
     box.body.gravity.y = 300;
+    return box;
   },
 
   createCoin: function () {
@@ -152,6 +166,7 @@ App.stage1.prototype = {
     this.physics.arcade.enable(coin);
     coin.body.gravity.y = 300;
     coin.animations.play('bling');
+    return coin;
   },
 
   createGround: function (platforms) {
@@ -219,7 +234,9 @@ App.stage1.prototype = {
 
       if (this.lobbyCountdown <= 0) {
         this.backgroundMusic.stop();
-        this.state.start('stage2');
+        // this.state.start('stage2');
+        App.info.socket.emit('startGame');
+
       } else {
         this.lobbyTimer = this.createLobbyTimer();
       }
@@ -234,7 +251,7 @@ App.stage1.prototype = {
     player.body.gravity.y = 300 * App.info.weight;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
-    player.hasCoin = false;
+    // player.hasCoin = false;
   },
 
   enableCollisions: function () {
@@ -243,9 +260,9 @@ App.stage1.prototype = {
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, () => {
-      player.hasCoin = true;
-      this.coinSound.play();
-      coin.kill();
+      // player.hasCoin = true;
+      console.log('EMITTING TAKE COIN');
+      App.info.socket.emit('stage1.takeCoin');
     });
   },
 
@@ -260,8 +277,9 @@ App.stage1.prototype = {
           App.info.players[i].player,
           coin,
           function () {
-            App.info.players[i].player.hasCoin = true;
-            coin.kill();
+            // App.info.players[i].player.hasCoin = true;
+            // coin.kill();
+            App.info.socket.emit('stage1.takeCoin');
           }
         );
         this.physics.arcade.collide(App.info.players[i].player, box);
@@ -269,12 +287,14 @@ App.stage1.prototype = {
     }
   },
 
-  doesAnyPlayerHaveCoin: function () {
-    return (
-      App.info.player.hasCoin ||
-      App.info.players.some((player) => player.hasCoin)
-    );
-  },
+
+  //  BEFORE SERVER SIDE LOGIC
+  // doesAnyPlayerHaveCoin: function () {
+  //   return (
+  //     App.info.player.hasCoin ||
+  //     App.info.players.some((player) => player.hasCoin)
+  //   );
+  // },
 
   isOnlyOnePlayer: function () {
     return App.info.players.length === 0;
@@ -334,41 +354,43 @@ App.info = {
 
   //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {
-    App.info.socket.on('connect', function () {
-      App.info.socketConnect();
-    });
-
     App.info.socket.on('disconnected', function () {
       App.info.socketDisconnect();
     });
     App.info.socket.on('newplayer', function (data) {
       App.info.createPlayer(data);
     });
-    App.info.socket.on('moveplayer', function (data) {
+    App.info.socket.on('removed player', function (data) {
+      App.info.removePlayer(data);
+    });
+    App.info.socket.on('moved player', function (data) {
       App.info.movePlayer(data);
     });
     App.info.socket.on('movep2player', function (data) {
       App.info.moveP2Player(data);
     });
-    App.info.socket.on('remove player', function (data) {
-      App.info.removePlayer(data);
-    });
-
-    App.info.socket.on('disconnected', function () {
-      App.info.socketDisconnect();
-    });
-    App.info.socket.on('newplayer', function (data) {
-      App.info.createPlayer(data);
-    });
-    App.info.socket.on('moveplayer', function (data) {
-      App.info.movePlayer(data);
-    });
-    App.info.socket.on('remove player', function (data) {
-      App.info.removePlayer(data);
-    });
-
     App.info.socket.on('stage', function () {
       App.info.stageConnect();
+    });
+    App.info.socket.on('stage1.movedbox', function (data) {
+      console.log('moved box');
+      if (App.info.stage.box) {
+        App.info.stage.box.x = data.x;
+        App.info.stage.box.y = data.y;
+      }
+    });
+    App.info.socket.on('stage1.coinTaken', function () {
+      console.log('coin taken$$$');
+      if (App.info.stage.coin) {
+        App.info.stage.coin.kill();
+        App.info.stage.coinSound.play();
+        App.info.stage.startLobbyCountdown();
+      }
+    });
+    App.info.socket.on('startStage', function (stage) {
+      console.log('startingStageee');
+      App.info.stage.backgroundMusic.stop();
+      App.info.stage.state.start(stage);
     });
   },
   //this function is called  when you connect to a new stage, it resets the players

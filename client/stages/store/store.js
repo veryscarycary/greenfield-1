@@ -5,6 +5,9 @@ App.store = function(game) {
 
 App.store.prototype = {
   preload: function() {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+    
     this.load.image('library', '/../../../assets/library.png');
     this.load.image('libraryfloor', '/../../../assets/libraryfloor.png');
     this.load.spritesheet('rangerwalk', '/../../../assets/rangerwalk.png', 39.5, 76);
@@ -83,8 +86,7 @@ App.store.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 30, function () {
-      context.backgroundMusic.stop();
-      context.state.start(App.info.nextStage);
+      App.info.socket.emit('nextStage', { from: 'store' });
     }, this);
 
     timerText = ('Time left in store: ' + this.time.events.duration);
@@ -207,8 +209,7 @@ App.store.prototype = {
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, witchhat, function(player, witchhat) {
-          this.backgroundMusic.stop();
-          this.state.start(App.info.nextStage);
+          App.info.socket.emit('nextStage', { from: 'store' });
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, turtleshell, function(player, turtleshell) {
@@ -285,8 +286,9 @@ App.store.prototype = {
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
       witchhat.kill();
       setTimeout(function () {
-        context.backgroundMusic.stop();
-        context.state.start(App.info.nextStage); 
+        // context.backgroundMusic.stop();
+        // context.state.start(App.info.nextStage); 
+        App.info.socket.emit('nextStage', { from: 'store' });
       }, 1000);
     }, null, this);
 

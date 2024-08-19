@@ -62,6 +62,22 @@ app.get('*', function(req, res) {
 //   });
 // });
 
+/* Active Game
+players: [],
+currentStageIndex: 0
+*/
+
+const serverInfo = {
+  activeGames: [],
+  stage1: {
+    wasCoinTaken: false,
+    box: {
+      x: 0,
+      y: 0,
+    },
+  },
+};
+
 
 io.on('connection', function (socket) {
   connectionFuncs(socket);
@@ -94,6 +110,22 @@ var connectionFuncs = function (player) {
   player.on('shotsFired', function (data) {
     reportShotsFired(data, this);
   });
+  player.on('stage1.moveBox', function(data) {
+    moveBox(data, this);
+  });
+  player.on('stage1.takeCoin', function() {
+    takeCoin();
+  });
+  player.on('startGame', function() {
+    console.log('STARTING GAME');
+    startNewGame(this);
+  });
+  player.on('nextStage', function (fromStage) {
+    startNextStage(fromStage, this);
+  });
+  player.on('endGame', function() {
+    endGame(this);
+  });
 };
 
 var reportShotsFired = function(data, player) {
@@ -114,6 +146,86 @@ var reportShotsFired = function(data, player) {
   });
 };
 
+
+var startNewGame = function (player) {
+  // const players = findPlayersInLobby();   // TODO: GET DIFFERENT PLAYERS DEPENDING ON GAME
+  const newGame = constructGameObject();
+  serverInfo.activeGames.push(newGame);
+  io.emit('startStage', newGame.stages[newGame.currentStageIndex].stageName);
+  serverInfo.stage1.wasCoinTaken = false; // reset lobby
+};
+
+var constructGameObject = function () {
+  const stages = [
+    {
+      name: 'stage2',
+      stageName: 'stage2',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'store1',
+      stageName: 'store',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'stage3',
+      stageName: 'stage3',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'store2',
+      stageName: 'store',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'stage4',
+      stageName: 'stage4',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'store3',
+      stageName: 'store',
+      wasNextStageTriggered: false,
+    },
+    {
+      name: 'stage5',
+      stageName: 'stage5',
+      wasNextStageTriggered: false,
+    },
+  ];
+
+  const game = {
+    players,
+    stages,
+    currentStageIndex: 0,
+  };
+
+  return game;
+} 
+
+
+var startNextStage = function (data, player) {
+  const fromStageName = data.from;
+  const game = serverInfo.activeGames[0];
+  const fromStage = game.stages.find(stage => stage.name === fromStageName);
+
+  if (fromStage.wasNextStageTriggered) {
+    return;
+  }
+  // const startingPlayer = findPlayer(player.id);
+  // console.log(serverInfo.activeGames[0].players);
+  fromStage.wasNextStageTriggered = true;
+  game.currentStageIndex += 1;
+  // Start next stage for all players in current game
+  io.emit('startStage', game.stages[game.currentStageIndex].stageName);
+};
+
+var endGame = function (player) {
+  serverInfo.activeGames = [];
+
+  // Start next stage for all players in current game
+  io.emit('startStage', 'stage1');
+};
 
 var startStage3Timer = function(player) {
   if (timerStarted) { return; }
@@ -142,8 +254,14 @@ var playerDisconnect = function(player) {
 
   players.splice(players.indexOf(removedPlayer), 1);
 
+  const game = serverInfo.activeGames[0]; // INFO MAKE PARALLEL GAMES AVAILABLE
+
+  if (game && game.players.length === 0) {
+    serverInfo.activeGames.splice(serverInfo.activeGames.indexOf(game), 1);
+  }
+
   //tell clients to remove this specific player
-  player.broadcast.emit('remove player', {id: player.id});
+  player.broadcast.emit('removed player', {id: player.id});
   console.log('players>> ', players);
 };
 
@@ -245,7 +363,7 @@ var movePlayer = function (data, player) {
   movedPlayer.setAngle(data.angle);
 
 
-  player.broadcast.emit('moveplayer', {
+  player.broadcast.emit('moved player', {
     id: movedPlayer.id,
     x: movedPlayer.getX(),
     y: movedPlayer.getY(),
@@ -275,6 +393,33 @@ var moveP2Player = function (data, player) {
 
 };
 
+var moveBox = function (data, player) {
+  const positionX = data.x;
+  const positionY = data.y;
+
+  serverInfo.stage1.box.x = positionX;
+  serverInfo.stage1.box.y = positionY;
+
+  player.broadcast.emit('stage1.movedbox', {
+    x: positionX,
+    y: positionY,
+  });
+};
+
+var takeCoin = function () {
+
+  serverInfo.stage1.wasCoinTaken = true;
+
+  io.emit('stage1.coinTaken');
+};
+
+var takeCoin = function () {
+
+  serverInfo.stage1.wasCoinTaken = true;
+
+  io.emit('stage1.coinTaken');
+};
+
 //helper function to find player in our stored players array
 var findPlayer = function (id) {
   for (var i = 0; i < players.length; i++) {
@@ -283,6 +428,11 @@ var findPlayer = function (id) {
     }
   }
   return false;
+};
+
+var findPlayersInLobby = function () {
+  const lobbyPlayers = players.filter(player => !serverInfo.activeGames.some(activeGame => activeGame.players.includes(player)));
+  return lobbyPlayers;
 };
 
 http.listen(port, ip, function() {

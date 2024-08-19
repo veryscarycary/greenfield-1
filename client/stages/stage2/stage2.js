@@ -10,6 +10,9 @@ App.stage2 = function(game) {
 
 App.stage2.prototype = {
   preload: function() {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+
     this.load.spritesheet('dude', '/../../../assets/dude.png', 32, 48);
     this.load.image('ground', '/../../../assets/platform.png');
     this.load.spritesheet('robocop', '/../../../assets/robocop.png', 40, 62);
@@ -296,8 +299,8 @@ App.stage2.prototype = {
 
     if (playersTouching && playerTouching && !nextStageTimer) {
       nextStageTimer = setTimeout(function () {
-        context.backgroundMusic.stop();
-        context.state.start('store'); 
+        App.info.socket.emit('nextStage', { from: 'stage2' });
+        // context.state.start('store'); 
       }, NEXT_STAGE_DELAY);  
     }
 

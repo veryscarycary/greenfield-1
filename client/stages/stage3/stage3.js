@@ -66,6 +66,9 @@ var Weapon = {};
 App.stage3.prototype = {
   weapons: [],
   preload: function() {
+    // set stage reference so we can more easily access 'this' properties in socket.io handlers
+    App.info.stage = this;
+    
     this.load.image('scorchedEarth', '/../../../assets/caryAssets/scorched_earth.png');
     // this.load.image('lavaleft1', '/../../../assets/caryAssets/lavaleft1.png');
     // this.load.image('lavaleft2', '/../../../assets/caryAssets/lavaleft2.png');
@@ -241,8 +244,9 @@ App.stage3.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
-      this.backgroundMusic.stop();
-      this.state.start('store');
+      // this.backgroundMusic.stop();
+      // this.state.start('store');
+      App.info.socket.emit('nextStage', { from: 'stage3' });
     }, this);
 
     // App.info.socket.on('startNextStage', function() { startNextStage(context); });
@@ -410,7 +414,8 @@ function setupSmoke(smoke) {
 }
 
 function startNextStage (context) {
-  context.state.start('store');
+  // context.state.start('store');
+  App.info.socket.emit('nextStage', { from: 'stage3' });
 }
 
 function resetArrow (arrow) {

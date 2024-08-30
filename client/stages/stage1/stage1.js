@@ -233,10 +233,7 @@ App.stage1.prototype = {
       this.lobbyCountdown -= 1;
 
       if (this.lobbyCountdown <= 0) {
-        this.backgroundMusic.stop();
-        // this.state.start('stage2');
-        App.info.socket.emit('startGame');
-
+        this.lobbyTimer = null; // the server's next-stage socket message should be received at this time
       } else {
         this.lobbyTimer = this.createLobbyTimer();
       }

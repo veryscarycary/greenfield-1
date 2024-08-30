@@ -25,16 +25,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
-}));
+app.use(
+  session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  })
+);
 app.use('/api', routes);
 // app.use('/', authRoutes(app, passport));
 
-app.get('*', function(req, res) {
+app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, '/../client/index.html'));
 });
 
@@ -78,11 +80,9 @@ const serverInfo = {
   },
 };
 
-
 io.on('connection', function (socket) {
   connectionFuncs(socket);
 });
-
 
 //series of listeners started on our socket connection
 var connectionFuncs = function (player) {
@@ -91,17 +91,16 @@ var connectionFuncs = function (player) {
   player.on('disconnect', function () {
     playerDisconnect(this);
   });
-  player.on('new player', function (data){
-    newPlayer(data,this);
+  player.on('new player', function (data) {
+    newPlayer(data, this);
   });
-  player.on('move player', function(data) {
-
+  player.on('move player', function (data) {
     movePlayer(data, this);
   });
-  player.on('repop', function (data){
-    repopPlayers(data,this);
+  player.on('repop', function (data) {
+    repopPlayers(data, this);
   });
-  player.on('p2player', function(data){
+  player.on('p2player', function (data) {
     moveP2Player(data, this);
   });
   player.on('startTimer', function () {
@@ -110,25 +109,25 @@ var connectionFuncs = function (player) {
   player.on('shotsFired', function (data) {
     reportShotsFired(data, this);
   });
-  player.on('stage1.moveBox', function(data) {
+  player.on('stage1.moveBox', function (data) {
     moveBox(data, this);
   });
-  player.on('stage1.takeCoin', function() {
+  player.on('stage1.takeCoin', function () {
     takeCoin();
   });
-  player.on('startGame', function() {
+  player.on('startGame', function () {
     console.log('STARTING GAME');
     startNewGame(this);
   });
-  player.on('nextStage', function (fromStage) {
-    startNextStage(fromStage, this);
-  });
-  player.on('endGame', function() {
+  // player.on('nextStage', function (fromStage) {
+  //   startNextStage(fromStage, this);
+  // });
+  player.on('endGame', function () {
     endGame(this);
   });
 };
 
-var reportShotsFired = function(data, player) {
+var reportShotsFired = function (data, player) {
   var shootingPlayer = findPlayer(player.id);
 
   if (!shootingPlayer) {
@@ -140,74 +139,48 @@ var reportShotsFired = function(data, player) {
     shooter: {
       id: shootingPlayer.id,
       x: shootingPlayer.getX(),
-      y: shootingPlayer.getY()
+      y: shootingPlayer.getY(),
     },
-    direction: data.direction
+    direction: data.direction,
   });
 };
-
 
 var startNewGame = function (player) {
   // const players = findPlayersInLobby();   // TODO: GET DIFFERENT PLAYERS DEPENDING ON GAME
   const newGame = constructGameObject();
   serverInfo.activeGames.push(newGame);
-  io.emit('startStage', newGame.stages[newGame.currentStageIndex].stageName);
-  serverInfo.stage1.wasCoinTaken = false; // reset lobby
+  return newGame;
+  // io.emit('startStage', newGame.stages[newGame.currentStageIndex].stageName);
+  // serverInfo.stage1.wasCoinTaken = false; // reset lobby
 };
 
 var constructGameObject = function () {
   const stages = [
-    {
-      name: 'stage2',
-      stageName: 'stage2',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'store1',
-      stageName: 'store',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'stage3',
-      stageName: 'stage3',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'store2',
-      stageName: 'store',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'stage4',
-      stageName: 'stage4',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'store3',
-      stageName: 'store',
-      wasNextStageTriggered: false,
-    },
-    {
-      name: 'stage5',
-      stageName: 'stage5',
-      wasNextStageTriggered: false,
-    },
+    'stage1',
+    'stage2',
+    'store',
+    'stage3',
+    'store',
+    'stage4',
+    'store',
+    'stage5',
   ];
 
   const game = {
     players,
     stages,
+    stageTimer: null,
+    stageTimeRemaining: 0,
     currentStageIndex: 0,
   };
 
   return game;
-} 
-
+};
 
 var startNextStage = function (data, player) {
   const fromStageName = data.from;
   const game = serverInfo.activeGames[0];
-  const fromStage = game.stages.find(stage => stage.name === fromStageName);
+  const fromStage = game.stages.find((stage) => stage.name === fromStageName);
 
   if (fromStage.wasNextStageTriggered) {
     return;
@@ -227,23 +200,25 @@ var endGame = function (player) {
   io.emit('startStage', 'stage1');
 };
 
-var startStage3Timer = function(player) {
-  if (timerStarted) { return; }
-  var timer = setInterval(function () {
-    stage3Timer--;
-    if (stage3Timer <= 0) {
-      // start next stage, cancel timer and allow it to be started again
-      io.sockets.emit('startNextStage');
-      clearInterval(timer);
-      timerStarted = false;
-    }
-    // send timer to all clients
-    io.sockets.emit('updateTimer', stage3Timer);
-  }, 1000);
-  timerStarted = true;
-};
+// var startStage3Timer = function (player) {
+//   if (timerStarted) {
+//     return;
+//   }
+//   var timer = setInterval(function () {
+//     stage3Timer--;
+//     if (stage3Timer <= 0) {
+//       // start next stage, cancel timer and allow it to be started again
+//       io.sockets.emit('startNextStage');
+//       clearInterval(timer);
+//       timerStarted = false;
+//     }
+//     // send timer to all clients
+//     io.sockets.emit('updateTimer', stage3Timer);
+//   }, 1000);
+//   timerStarted = true;
+// };
 
-var playerDisconnect = function(player) {
+var playerDisconnect = function (player) {
   console.log('player disconnected:' + player.id);
   var removedPlayer = findPlayer(player.id);
 
@@ -261,14 +236,13 @@ var playerDisconnect = function(player) {
   }
 
   //tell clients to remove this specific player
-  player.broadcast.emit('removed player', {id: player.id});
+  player.broadcast.emit('removed player', { id: player.id });
   console.log('players>> ', players);
 };
 
-
 //a function used when changing stages-similair to new player
-var repopPlayers = function(data, player) {
-  console.log("repopPlayers server side function called");
+var repopPlayers = function (data, player) {
+  console.log('repopPlayers server side function called');
 
   //
   var pastSelf = findPlayer(player.id);
@@ -282,24 +256,22 @@ var repopPlayers = function(data, player) {
   }
   nPlayer.id = player.id;
 
-
   //send this object to existing clients
   player.broadcast.emit('newplayer', {
     id: nPlayer.id,
     x: nPlayer.getX(),
     y: nPlayer.getY(),
-    angle: nPlayer.getAngle()
-
+    angle: nPlayer.getAngle(),
   });
-  console.log("server side players array", players);
+  console.log('server side players array', players);
   //inform newly created player of previous players
-  for (var i = 0; i < players.length; i ++) {
+  for (var i = 0; i < players.length; i++) {
     var oldPlayer = players[i];
     player.emit('newplayer', {
       id: oldPlayer.id,
       x: oldPlayer.getX(),
       y: oldPlayer.getY(),
-      angle: oldPlayer.getAngle()
+      angle: oldPlayer.getAngle(),
     });
   }
 
@@ -308,9 +280,8 @@ var repopPlayers = function(data, player) {
   console.log('serverside players', players);
 };
 
-
-var newPlayer = function(data, player) {
-  console.log("newplayer server side function called");
+var newPlayer = function (data, player) {
+  console.log('newplayer server side function called');
 
   //create a new player objext
   var nPlayer = new Player(data.x, data.y, data.angle);
@@ -322,25 +293,22 @@ var newPlayer = function(data, player) {
 
   nPlayer.id = player.id;
 
-
   //send this object to existing clients
   player.broadcast.emit('newplayer', {
     id: nPlayer.id,
     x: nPlayer.getX(),
     y: nPlayer.getY(),
-    angle: nPlayer.getAngle()
-
+    angle: nPlayer.getAngle(),
   });
 
-
   //inform newly created player of previous players
-  for (var i = 0; i < players.length; i ++) {
+  for (var i = 0; i < players.length; i++) {
     var oldPlayer = players[i];
     player.emit('newplayer', {
       id: oldPlayer.id,
       x: oldPlayer.getX(),
       y: oldPlayer.getY(),
-      angle: oldPlayer.getAngle()
+      angle: oldPlayer.getAngle(),
     });
   }
 
@@ -362,14 +330,12 @@ var movePlayer = function (data, player) {
   movedPlayer.setY(data.y);
   movedPlayer.setAngle(data.angle);
 
-
   player.broadcast.emit('moved player', {
     id: movedPlayer.id,
     x: movedPlayer.getX(),
     y: movedPlayer.getY(),
-    angle: movedPlayer.getAngle()
+    angle: movedPlayer.getAngle(),
   });
-
 };
 
 var moveP2Player = function (data, player) {
@@ -388,10 +354,11 @@ var moveP2Player = function (data, player) {
     id: movedPlayer.id,
     x: movedPlayer.getX(),
     y: movedPlayer.getY(),
-    angle: movedPlayer.getAngle()
+    angle: movedPlayer.getAngle(),
   });
-
 };
+
+// stage 1
 
 var moveBox = function (data, player) {
   const positionX = data.x;
@@ -407,18 +374,31 @@ var moveBox = function (data, player) {
 };
 
 var takeCoin = function () {
-
   serverInfo.stage1.wasCoinTaken = true;
-
   io.emit('stage1.coinTaken');
+  const game = startNewGame();
+  game.stageTimer = setStageTimer(game, 10);
 };
 
-var takeCoin = function () {
+var setStageTimer = function (game, seconds) {
+  if (seconds) {
+    game.stageTimeRemaining = seconds;
+  }
 
-  serverInfo.stage1.wasCoinTaken = true;
+  return setTimeout(() => {
+    game.stageTimeRemaining -= 1;
+    console.log('stageTimeRemaining', game.stageTimeRemaining);
 
-  io.emit('stage1.coinTaken');
-};
+    if (game.stageTimeRemaining <= 0) {
+      game.stageTimer = null;
+      game.currentStageIndex += 1;
+      console.log('game.stages[game.currentStageIndex]', game.stages[game.currentStageIndex]);
+      io.emit('startStage', game.stages[game.currentStageIndex]);
+    } else {
+      game.stageTimer = setStageTimer(game);
+    }
+  }, 1000);
+}
 
 //helper function to find player in our stored players array
 var findPlayer = function (id) {
@@ -431,11 +411,16 @@ var findPlayer = function (id) {
 };
 
 var findPlayersInLobby = function () {
-  const lobbyPlayers = players.filter(player => !serverInfo.activeGames.some(activeGame => activeGame.players.includes(player)));
+  const lobbyPlayers = players.filter(
+    (player) =>
+      !serverInfo.activeGames.some((activeGame) =>
+        activeGame.players.includes(player)
+      )
+  );
   return lobbyPlayers;
 };
 
-http.listen(port, ip, function() {
+http.listen(port, ip, function () {
   console.log(`Listening on http://${ip}:${port}`);
 });
 

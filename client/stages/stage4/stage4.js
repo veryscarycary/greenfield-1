@@ -32,8 +32,6 @@ App.stage4.prototype = {
   },
 
   create: function() {
-    //next stage
-    App.info.nextStage = 'stage5';
 
     this.diamondSound = this.sound.add('diamond', 0.1, false);
     this.healSound = this.sound.add('heal', 0.3, false);

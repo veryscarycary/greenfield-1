@@ -104,6 +104,11 @@ App.stage1.prototype = {
       App.info.gold;
     scoreText.text = updatedScore;
 
+    // update countdown
+    if (this.lobbyCountdownText) {
+      this.lobbyCountdownText.text = App.info.stageTimeRemaining;
+    }
+
     // Play background music when the game starts
     if (!this.backgroundMusic.isPlaying) {
       this.backgroundMusic.play();
@@ -214,25 +219,13 @@ App.stage1.prototype = {
       this.lobbyCountdownText = this.add.text(
         this.world.centerX + 160,
         45,
-        this.lobbyCountdown,
+        App.info.stageTimeRemaining,
         {
           fontSize: '50px',
           fill: 'gold',
         }
       );
-    } else {
-      this.lobbyCountdownText.text = this.lobbyCountdown;
     }
-
-    this.lobbyTimer = setTimeout(() => {
-      this.lobbyCountdown -= 1;
-
-      if (this.lobbyCountdown <= 0) {
-        this.lobbyTimer = null; // the server's next-stage socket message should be received at this time
-      } else {
-        this.lobbyTimer = this.createLobbyTimer();
-      }
-    }, 1000);
   },
 
   createPlayer: function () {
@@ -329,7 +322,7 @@ App.info = {
   health: 100,
   gold: 0,
   players: [],
-  timer: 60, // seconds (stage3)
+  stageTimeRemaining: 10,
 
   color: 0xffffff,
   speed: 1,
@@ -394,6 +387,9 @@ App.info = {
     App.info.socket.on('startStage', function (stage) {
       App.info.stage.backgroundMusic.stop();
       App.info.stage.state.start(stage);
+    });
+    App.info.socket.on('stageTimeRemainingUpdated', function (stageTimeRemaining) {
+      App.info.stageTimeRemaining = stageTimeRemaining;
     });
   },
   //this function is called  when you connect to a new stage, it resets the players

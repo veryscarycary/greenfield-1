@@ -85,11 +85,11 @@ App.store.prototype = {
     scoreText.fixedToCamera = true;
 
     //timer
-    this.time.events.add(Phaser.Timer.SECOND * 30, function () {
+    // this.time.events.add(Phaser.Timer.SECOND * 30, function () {
       // No longer triggering next stage on FE, BE should change it after 30 sec already
-    }, this);
+    // }, this);
 
-    timerText = ('Time left in store: ' + this.time.events.duration);
+    timerText = ('Time left in store: ' + App.info.stageTimeRemaining);
 
     timer = this.add.text(270, 10, timerText, { font: '30px Arial', fill: "#000000", align: "center" });
 
@@ -265,7 +265,7 @@ App.store.prototype = {
     scoreText.text = updatedScore;
 
     //timer update
-    timerText = ('Time left in store: ' + this.time.events.duration);
+    timerText = ('Time left in store: ' + App.info.stageTimeRemaining);
     timer.text = timerText;
 
 

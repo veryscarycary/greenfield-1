@@ -200,7 +200,7 @@ App.stage3.prototype = {
 
     // App.info.socket.emit('startTimer');
 
-    var timerText = (Math.floor(App.info.timer / 60) + ':' + (App.info.timer % 60));
+    var timerText = (Math.floor(App.info.stageTimeRemaining / 60) + ':' + (App.info.stage % 60));
     timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
     timerAndScoreText.fixedToCamera= true;
 
@@ -238,18 +238,18 @@ App.stage3.prototype = {
 
     var context = this;
     ////////// TIMER AND SCORE
-    App.info.socket.on('updateTimer', function(serverTimer) {
-      App.info.timer = serverTimer;
-    });
+    // App.info.socket.on('updateTimer', function(serverTimer) {
+    //   App.info.timer = serverTimer;
+    // });
 
     //timer
-    this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+    // this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       // this.backgroundMusic.stop();
       // this.state.start('store');
       // App.info.socket.emit('nextStage');
 
       // FE NO LONGER STARTS NEXT STAGE, BE DOES IT
-    }, this);
+    // }, this);
 
     // App.info.socket.on('startNextStage', function() { startNextStage(context); });
 
@@ -259,8 +259,7 @@ App.stage3.prototype = {
     // } else {
     //   var seconds = (App.info.timer % 60);
     // }
-    var seconds = Math.floor(this.time.events.duration / 1000);
-    var updatedTimerAndScore = (0 + ':' + seconds);
+    var updatedTimerAndScore = (0 + ':' + App.info.stageTimeRemaining);
     timerAndScoreText.text = (updatedTimerAndScore + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
 
     ////////// INTERPLAYER COLLISIONS
@@ -292,9 +291,9 @@ App.stage3.prototype = {
       App.info.gold += 1;
     }, null, this);
 
-    App.info.socket.on('updateTimer', function(serverTimer) {
-      App.info.timer = serverTimer;
-    });
+    // App.info.socket.on('updateTimer', function(serverTimer) {
+    //   App.info.timer = serverTimer;
+    // });
     
     //////// ENEMY ARROWS
     App.info.socket.on('reportShotsFired', function(data) {

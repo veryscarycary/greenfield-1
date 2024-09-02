@@ -82,7 +82,6 @@ app.get('*', function (req, res) {
 const serverInfo = {
   activeGames: [],
   stage1: {
-    wasCoinTaken: false,
     box: {
       x: 0,
       y: 0,
@@ -134,10 +133,10 @@ var connectionFuncs = function (player) {
       game.stageTimer = setNextStageTimer(game);
     }
   });
-  player.on('startGame', function () {
-    console.log('STARTING GAME');
-    startNewGame(this);
-  });
+  // player.on('startGame', function () {
+  //   console.log('STARTING GAME');
+  //   startNewGame(this);
+  // });
   player.on('store.witchHat', function () {
     const game = serverInfo.activeGames[0];
 
@@ -174,7 +173,6 @@ var startNewGame = function (player) {
   serverInfo.activeGames.push(newGame);
   return newGame;
   // io.emit('startStage', newGame.stages[newGame.currentStageIndex].stageName);
-  // serverInfo.stage1.wasCoinTaken = false; // reset lobby
 };
 
 var constructGameObject = function () {
@@ -219,23 +217,23 @@ var startNextStage = function (game) {
 var setNextStageTimer = function (game, timeRemaining) {
   const stageTime = game.stages[game.currentStageIndex].time;
   if (stageTime && timeRemaining === undefined) {
-    console.log('STAGE TIME AND NO TIME REMAINING PROVIDED:', stageTime);
+    // Setting new stage with declared stage time
     game.stageTimeRemaining = stageTime;
+    io.emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
   }
 
   return setTimeout(() => {
     game.stageTimeRemaining -= 1;
-    console.log('stageTimeRemaining', game.stageTimeRemaining);
+    io.emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
 
     if (game.stageTimeRemaining <= 0) {
       game.stageTimer = null;
       startNextStage(game);
 
-      // new stage time
+      // Kicks off contiuous next stage loop for rest of game
       const nextStage = game.stages[game.currentStageIndex];
-      const nextStageTime = game.stages[game.currentStageIndex].time;
 
-      if (nextStage && nextStageTime) {
+      if (nextStage) {
         game.stageTimer = setNextStageTimer(game);
       }
     } else {
@@ -437,7 +435,6 @@ var moveBox = function (data, player) {
 };
 
 var takeCoin = function () {
-  serverInfo.stage1.wasCoinTaken = true;
   io.emit('stage1.coinTaken');
   const game = startNewGame();
   game.stageTimer = setNextStageTimer(game);

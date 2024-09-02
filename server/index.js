@@ -15,6 +15,13 @@ var routes = require('./routes/index.js');
 require('./config/passport')(passport);
 // var authRoutes = require('./db/authRoutes');
 var Player = require('./player.js');
+
+const STAGE_TIME_LOBBY = 10; // Lobby Countdown
+const STAGE_TIME_STORE = 30;
+const STAGE_TIME_ZELDA = 60;
+const STAGE_TIME_PLATFORMS = 60;
+const STAGE_TIME_SPACE = 60;
+
 var players = [];
 global.counter = 0;
 var stage3Timer = 60;
@@ -65,8 +72,11 @@ app.get('*', function (req, res) {
 // });
 
 /* Active Game
-players: [],
-currentStageIndex: 0
+    players,
+    stages,
+    stageTimer: null,
+    stageTimeRemaining: 0,
+    currentStageIndex: 0,
 */
 
 const serverInfo = {
@@ -115,6 +125,15 @@ var connectionFuncs = function (player) {
   player.on('stage1.takeCoin', function () {
     takeCoin();
   });
+  player.on('stage2.nextStage', function () {
+    const game = serverInfo.activeGames[0];
+
+    if (!game.wasStage2DoorAlreadyTouched) {
+      game.wasStage2DoorAlreadyTouched = true;
+      startNextStage(game);
+      game.stageTimer = setNextStageTimer(game);
+    }
+  });
   player.on('startGame', function () {
     console.log('STARTING GAME');
     startNewGame(this);
@@ -122,9 +141,6 @@ var connectionFuncs = function (player) {
   // player.on('nextStage', function (fromStage) {
   //   startNextStage(fromStage, this);
   // });
-  player.on('endGame', function () {
-    endGame(this);
-  });
 };
 
 var reportShotsFired = function (data, player) {
@@ -156,14 +172,14 @@ var startNewGame = function (player) {
 
 var constructGameObject = function () {
   const stages = [
-    'stage1',
-    'stage2',
-    'store',
-    'stage3',
-    'store',
-    'stage4',
-    'store',
-    'stage5',
+    { name: 'stage1', time: STAGE_TIME_LOBBY },
+    { name: 'stage2', time: null },
+    { name: 'store', time: STAGE_TIME_STORE },
+    { name: 'stage3', time: STAGE_TIME_ZELDA },
+    { name: 'store', time: STAGE_TIME_STORE },
+    { name: 'stage4', time: STAGE_TIME_PLATFORMS },
+    { name: 'store', time: STAGE_TIME_STORE },
+    { name: 'stage5', time: STAGE_TIME_SPACE },
   ];
 
   const game = {
@@ -172,26 +188,51 @@ var constructGameObject = function () {
     stageTimer: null,
     stageTimeRemaining: 0,
     currentStageIndex: 0,
+    wasStage2DoorAlreadyTouched: false,
   };
 
   return game;
 };
 
-var startNextStage = function (data, player) {
-  const fromStageName = data.from;
-  const game = serverInfo.activeGames[0];
-  const fromStage = game.stages.find((stage) => stage.name === fromStageName);
-
-  if (fromStage.wasNextStageTriggered) {
-    return;
-  }
-  // const startingPlayer = findPlayer(player.id);
-  // console.log(serverInfo.activeGames[0].players);
-  fromStage.wasNextStageTriggered = true;
+var startNextStage = function (game) {
   game.currentStageIndex += 1;
-  // Start next stage for all players in current game
-  io.emit('startStage', game.stages[game.currentStageIndex].stageName);
-};
+
+  // GAME END, go back to lobby
+  if (game.currentStageIndex >= game.stages.length) {
+    endGame();
+  } else {
+    io.emit('startStage', game.stages[game.currentStageIndex].name);
+  }
+}
+
+// WARNING: Will start next stage loop continuously, if stage.time is a valid number
+var setNextStageTimer = function (game, timeRemaining) {
+  const stageTime = game.stages[game.currentStageIndex].time;
+  if (stageTime && timeRemaining === undefined) {
+    console.log('STAGE TIME AND NO TIME REMAINING PROVIDED:', stageTime);
+    game.stageTimeRemaining = stageTime;
+  }
+
+  return setTimeout(() => {
+    game.stageTimeRemaining -= 1;
+    console.log('stageTimeRemaining', game.stageTimeRemaining);
+
+    if (game.stageTimeRemaining <= 0) {
+      game.stageTimer = null;
+      startNextStage(game);
+
+      // new stage time
+      const nextStage = game.stages[game.currentStageIndex];
+      const nextStageTime = game.stages[game.currentStageIndex].time;
+
+      if (nextStage && nextStageTime) {
+        game.stageTimer = setNextStageTimer(game);
+      }
+    } else {
+      game.stageTimer = setNextStageTimer(game, game.stageTimeRemaining);
+    }
+  }, 1000);
+}
 
 var endGame = function (player) {
   serverInfo.activeGames = [];
@@ -377,28 +418,9 @@ var takeCoin = function () {
   serverInfo.stage1.wasCoinTaken = true;
   io.emit('stage1.coinTaken');
   const game = startNewGame();
-  game.stageTimer = setStageTimer(game, 10);
+  game.stageTimer = setNextStageTimer(game);
 };
 
-var setStageTimer = function (game, seconds) {
-  if (seconds) {
-    game.stageTimeRemaining = seconds;
-  }
-
-  return setTimeout(() => {
-    game.stageTimeRemaining -= 1;
-    console.log('stageTimeRemaining', game.stageTimeRemaining);
-
-    if (game.stageTimeRemaining <= 0) {
-      game.stageTimer = null;
-      game.currentStageIndex += 1;
-      console.log('game.stages[game.currentStageIndex]', game.stages[game.currentStageIndex]);
-      io.emit('startStage', game.stages[game.currentStageIndex]);
-    } else {
-      game.stageTimer = setStageTimer(game);
-    }
-  }, 1000);
-}
 
 //helper function to find player in our stored players array
 var findPlayer = function (id) {

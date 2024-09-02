@@ -108,8 +108,8 @@ App.stage5.prototype = {
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       // this.backgroundMusic.stop();
       // this.state.start('store');
-      App.info.socket.emit('endGame');
-      App.info.difficulty += 1;
+      // App.info.socket.emit('endGame');
+      // App.info.difficulty += 1;
     }, this);
 
 

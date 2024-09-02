@@ -86,7 +86,7 @@ App.store.prototype = {
 
     //timer
     this.time.events.add(Phaser.Timer.SECOND * 30, function () {
-      App.info.socket.emit('nextStage', { from: 'store' });
+      // No longer triggering next stage on FE, BE should change it after 30 sec already
     }, this);
 
     timerText = ('Time left in store: ' + this.time.events.duration);
@@ -288,7 +288,7 @@ App.store.prototype = {
       setTimeout(function () {
         // context.backgroundMusic.stop();
         // context.state.start(App.info.nextStage); 
-        App.info.socket.emit('nextStage', { from: 'store' });
+        App.info.socket.emit('nextStage');
       }, 1000);
     }, null, this);
 
@@ -397,7 +397,6 @@ App.store.prototype = {
 
     }
     if (cursors.up.isDown && player.body.touching.down) {
-      App.info.score += 10;
       player.body.velocity.y = -600 * App.info.jump;
       scoreText.text = 'Score:' + App.info.score;
     }

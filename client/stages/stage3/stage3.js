@@ -246,7 +246,9 @@ App.stage3.prototype = {
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       // this.backgroundMusic.stop();
       // this.state.start('store');
-      App.info.socket.emit('nextStage', { from: 'stage3' });
+      // App.info.socket.emit('nextStage');
+
+      // FE NO LONGER STARTS NEXT STAGE, BE DOES IT
     }, this);
 
     // App.info.socket.on('startNextStage', function() { startNextStage(context); });
@@ -442,7 +444,7 @@ function collisionHandlerEnemy (enemyPlayer, arrow) {
   arrow.kill();
 
   //  Increase the score
-  App.info.score += 20;
+  // App.info.score += 20;
 
    // And create a smoke :)
   var smoke = smokes.getFirstExists(false);

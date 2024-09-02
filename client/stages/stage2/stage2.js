@@ -1,5 +1,5 @@
 // DINO WORLD
-var NEXT_STAGE_DELAY = 5000; // 5 seconds
+var NEXT_STAGE_DELAY = 500;
 var nextStageTimer = null;
 var hurtTimer = null;
 
@@ -239,17 +239,18 @@ App.stage2.prototype = {
     var context = this;
     var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
-    playersTouching = false;
+    // playersTouching = false;
     playerTouching = false;
+    nextStageTimer;
 
     // Play background music when the game starts
     if (!this.backgroundMusic.isPlaying) {
       this.backgroundMusic.play();
     }
 
-    if ( App.info.players.length === 0 ) {
-      playersTouching = true;
-    }
+    // if ( App.info.players.length === 0 ) {
+    //   playersTouching = true;
+    // }
     //this function updates each player each frame- KEEP!!!
     for ( var i = 0; i < App.info.players.length; i ++) {
       if (App.info.players[i].alive) { 
@@ -261,12 +262,12 @@ App.stage2.prototype = {
           coin.kill();
         }, null, this);
         this.physics.arcade.collide(App.info.players[i].player, box);
-        this.physics.arcade.overlap(App.info.players[i].player, door, function() {
-          playersTouching = true;
+        // this.physics.arcade.overlap(App.info.players[i].player, door, function() {
+        //   playersTouching = true;
 
-          warning = context.add.bitmapText(300,100,"pixel", "HURRY UP!\n DOOR CLOSES SOON!", 30);
-          warning.fixedToCamera = true;
-        });
+        //   warning = context.add.bitmapText(300,100,"pixel", "HURRY UP!\n DOOR CLOSES SOON!", 30);
+        //   warning.fixedToCamera = true;
+        // });
       }
     }
 
@@ -297,9 +298,9 @@ App.stage2.prototype = {
       playerTouching = true;
     });
 
-    if (playersTouching && playerTouching && !nextStageTimer) {
+    if (playerTouching && !nextStageTimer) {
       nextStageTimer = setTimeout(function () {
-        App.info.socket.emit('nextStage', { from: 'stage2' });
+        App.info.socket.emit('stage2.nextStage');
         // context.state.start('store'); 
       }, NEXT_STAGE_DELAY);  
     }

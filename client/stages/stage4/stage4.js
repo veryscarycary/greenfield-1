@@ -238,8 +238,10 @@ App.stage4.prototype = {
     this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       // this.backgroundMusic.stop();
       this.starPowerSound.stop();
-      App.info.socket.emit('nextStage', { from: 'stage4' });
+      // App.info.socket.emit('nextStage');
       // this.state.start('store');
+
+      // FE NO LONGER STARTS NEXT STAGE, BE DOES IT
     }, this);
 
     //this is important to bring in your players!!

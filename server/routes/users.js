@@ -9,12 +9,24 @@ router.get('/', (req, res) => {
 });
 
 // Get user by ID
-router.get('/:username', (req, res) => {
-  const user = User.find(u => u.username === req.params.username);
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404).json({ message: 'User not found' });
+router.get('/:username', async (req, res) => {
+  try {
+    console.log('req.params.username', req.params.username);
+
+    // Use findOne to get a single user document
+    const user = await User.findOne({ username: req.params.username });
+
+    if (user) {
+      res.json({
+        username: user.username,
+        highscore: user.highscore,
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -31,7 +43,6 @@ router.get('/:username', (req, res) => {
 
 // Update a user's high score
 router.put('/:username/highscore', async (req, res) => {
-  console.log('THE BELLLY OF THE BEAST');
   try {
     const { username } = req.params;
     const { highscore } = req.body;
@@ -47,16 +58,6 @@ router.put('/:username/highscore', async (req, res) => {
     } else {
       res.status(404).json({ message: 'User not found' });
     }
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Get the leaderboard (top 10 users by high score)
-router.get('/leaderboard', async (req, res) => {
-  try {
-    const leaderboard = await User.find().sort({ highScore: -1 }).limit(10);
-    res.json(leaderboard);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

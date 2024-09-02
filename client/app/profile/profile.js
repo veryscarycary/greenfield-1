@@ -18,7 +18,6 @@ angular.module('app.profile', [])
       console.log('error: ', err);
     });
   };
-
 });
 
 //profile page: 

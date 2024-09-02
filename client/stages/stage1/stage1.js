@@ -94,9 +94,6 @@ App.stage1.prototype = {
   },
 
   update: function () {
-    console.log('this.box', this.box);
-    console.log('App.info.stage.box', App.info.stage.box);
-
     var context = this;
     var updatedScore =
       'Score:' +
@@ -106,8 +103,6 @@ App.stage1.prototype = {
       '\nGold: ' +
       App.info.gold;
     scoreText.text = updatedScore;
-
-    console.log('update is running');
 
     // Play background music when the game starts
     if (!this.backgroundMusic.isPlaying) {
@@ -132,10 +127,10 @@ App.stage1.prototype = {
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    if (cursors.down.isDown) {
-      this.backgroundMusic.stop();
-      this.state.start('store');
-    }
+    // if (cursors.down.isDown) {
+    //   this.backgroundMusic.stop();
+    //   this.state.start('store');
+    // }
 
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -258,7 +253,6 @@ App.stage1.prototype = {
     this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, () => {
       // player.hasCoin = true;
-      console.log('EMITTING TAKE COIN');
       App.info.socket.emit('stage1.takeCoin');
     });
   },
@@ -315,7 +309,6 @@ App.stage1.prototype = {
       var jumpSounds = [this.jump1Sound, this.jump2Sound, this.jump3Sound];
       jumpSounds[Math.floor(Math.random() * jumpSounds.length)].play();
       
-      App.info.score += 10;
       player.body.velocity.y = -300 * App.info.jump;
     }
   },
@@ -349,6 +342,22 @@ App.info = {
   // sets this player's socket
   socket: io.connect('http://localhost:3000'), // sets this player's socket
 
+  highscoreInterval: setInterval(() => {
+    // Access the scope using Angular's element injector
+    const controllerElement = document.getElementById('game-controller');
+    const scope = angular.element(controllerElement).scope();
+
+    // Now you can access or manipulate the scope
+    scope.getUser().then(user => {
+      const highscore = user.highscore;
+
+      if (App.info.score > highscore) {
+        console.log(`Updating highscore for user '${scope.user.username}'`);
+        scope.updateHighscore(App.info.score);
+      }
+    }).catch(err => console.error('Failed to fetch user: ', err.message));
+  }, 10000),
+
   //these event handlers trigger functions no matter what stage you are on
   socketHandlers: function () {
     App.info.socket.on('disconnected', function () {
@@ -370,14 +379,12 @@ App.info = {
       App.info.stageConnect();
     });
     App.info.socket.on('stage1.movedbox', function (data) {
-      console.log('moved box');
       if (App.info.stage.box) {
         App.info.stage.box.x = data.x;
         App.info.stage.box.y = data.y;
       }
     });
     App.info.socket.on('stage1.coinTaken', function () {
-      console.log('coin taken$$$');
       if (App.info.stage.coin) {
         App.info.stage.coin.kill();
         App.info.stage.coinSound.play();
@@ -385,7 +392,6 @@ App.info = {
       }
     });
     App.info.socket.on('startStage', function (stage) {
-      console.log('startingStageee');
       App.info.stage.backgroundMusic.stop();
       App.info.stage.state.start(stage);
     });

@@ -209,7 +209,9 @@ App.store.prototype = {
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, witchhat, function(player, witchhat) {
-          App.info.socket.emit('nextStage', { from: 'store' });
+          setTimeout(() => {
+            App.info.socket.emit('store.witchHat');
+          }, 200);
         }, null, this);
 
         this.physics.arcade.overlap(App.info.players[i].player, turtleshell, function(player, turtleshell) {
@@ -288,8 +290,8 @@ App.store.prototype = {
       setTimeout(function () {
         // context.backgroundMusic.stop();
         // context.state.start(App.info.nextStage); 
-        App.info.socket.emit('nextStage');
-      }, 1000);
+        App.info.socket.emit('store.witchHat');
+      }, 200);
     }, null, this);
 
     this.physics.arcade.overlap(player, turtleshell, function(player, turtleshell) {

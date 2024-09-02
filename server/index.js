@@ -138,6 +138,13 @@ var connectionFuncs = function (player) {
     console.log('STARTING GAME');
     startNewGame(this);
   });
+  player.on('store.witchHat', function () {
+    const game = serverInfo.activeGames[0];
+
+    if (!game.wasStoreWitchHatAlreadyTouched) {
+      cancelStoreTimerAndStartNextStage();
+    }
+  });
   // player.on('nextStage', function (fromStage) {
   //   startNextStage(fromStage, this);
   // });
@@ -189,6 +196,7 @@ var constructGameObject = function () {
     stageTimeRemaining: 0,
     currentStageIndex: 0,
     wasStage2DoorAlreadyTouched: false,
+    wasStoreWitchHatAlreadyTouched: false,
   };
 
   return game;
@@ -203,6 +211,8 @@ var startNextStage = function (game) {
   } else {
     io.emit('startStage', game.stages[game.currentStageIndex].name);
   }
+
+  game.wasStoreWitchHatAlreadyTouched = false; // in order to reset witchhat for later store visits
 }
 
 // WARNING: Will start next stage loop continuously, if stage.time is a valid number
@@ -232,6 +242,18 @@ var setNextStageTimer = function (game, timeRemaining) {
       game.stageTimer = setNextStageTimer(game, game.stageTimeRemaining);
     }
   }, 1000);
+}
+
+var cancelStoreTimerAndStartNextStage = function () {
+  const game = serverInfo.activeGames[0];
+
+  clearTimeout(game.stageTimer);
+  game.stageTimer = null;
+
+  startNextStage(game);
+  game.stageTimer = setNextStageTimer(game);
+
+  game.wasStoreWitchHatAlreadyTouched = true;
 }
 
 var endGame = function (player) {

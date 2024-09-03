@@ -1,5 +1,15 @@
 // LOBBY
 
+const protocol = window.location.protocol;
+const hostname =window.location.hostname;
+const port = window.location.port;
+let socketUrl = `${protocol}//${hostname}`;
+
+// Append the port if it exists and is not the default HTTP/HTTPS port
+if (port && port !== "80" && port !== "443") {
+    socketUrl += `:${port}`;
+}
+
 App.stage1 = function (game) {
   console.log('starting stage1');
   console.log(game);
@@ -333,7 +343,7 @@ App.info = {
   nextStage: null,
 
   // sets this player's socket
-  socket: io.connect('http://localhost:3000'), // sets this player's socket
+  socket: io.connect(socketUrl), // sets this player's socket
 
   highscoreInterval: setInterval(() => {
     // Access the scope using Angular's element injector

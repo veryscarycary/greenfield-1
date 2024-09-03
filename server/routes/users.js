@@ -11,8 +11,6 @@ router.get('/', (req, res) => {
 // Get user by ID
 router.get('/:username', async (req, res) => {
   try {
-    console.log('req.params.username', req.params.username);
-
     // Use findOne to get a single user document
     const user = await User.findOne({ username: req.params.username });
 

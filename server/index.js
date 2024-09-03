@@ -115,8 +115,8 @@ var connectionFuncs = function (player) {
   player.on('startTimer', function () {
     startStage3Timer(this);
   });
-  player.on('shotsFired', function (data) {
-    reportShotsFired(data, this);
+  player.on('stage3.fireArrow', function (data) {
+    fireArrow(data, this);
   });
   player.on('stage1.moveBox', function (data) {
     moveBox(data, this);
@@ -149,15 +149,15 @@ var connectionFuncs = function (player) {
   // });
 };
 
-var reportShotsFired = function (data, player) {
+var fireArrow = function (data, player) {
   var shootingPlayer = findPlayer(player.id);
 
   if (!shootingPlayer) {
-    console.log('player not found, cannot move' + player.id);
+    console.log('player not found, cannot fire arrow for ' + player.id);
     return;
   }
 
-  player.broadcast.emit('reportShotsFired', {
+  io.emit('stage3.arrowFired', {
     shooter: {
       id: shootingPlayer.id,
       x: shootingPlayer.getX(),

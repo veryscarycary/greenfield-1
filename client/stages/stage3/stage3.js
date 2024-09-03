@@ -112,9 +112,7 @@ App.stage3.prototype = {
     this.backgroundMusic = this.sound.add('backgroundMusicZelda', 0.2, true);
     this.backgroundMusic.play();
 
-    App.info.nextStage = 'stage4';
     App.info.lastDirection = 'left';
-
 
     let x = -500;
     let y = -500;
@@ -132,7 +130,6 @@ App.stage3.prototype = {
     var startX = Math.round(Math.random() * (1000) - 500);
     var startY = Math.round(Math.random() * (1000) - 500);
     player = this.add.sprite(startX, startY, 'greenLink');
-    console.log('Player Sprite INFO', player);
     player.anchor.setTo(0.5, 0.5);
 
     this.physics.enable(player, Phaser.Physics.ARCADE);
@@ -226,12 +223,8 @@ App.stage3.prototype = {
       snow.fixedToCamera = true;
     }
 
-
     //this is important to bring in your players!!
     App.info.stageConnect();
-
-    
-
   },
 
   update: function() {
@@ -294,11 +287,7 @@ App.stage3.prototype = {
     // App.info.socket.on('updateTimer', function(serverTimer) {
     //   App.info.timer = serverTimer;
     // });
-    
-    //////// ENEMY ARROWS
-    App.info.socket.on('reportShotsFired', function(data) {
-      this.fireArrow(data.direction, data.shooter);
-    });
+  
 
 
     ///////// CONTROLS
@@ -332,8 +321,10 @@ App.stage3.prototype = {
 
   },
 
-  fireArrow: function(direction, shooter) {
-    shooter = shooter || player;
+  fireArrow: function(direction, serverPlayer) {
+    var otherPlayer = App.info.findPlayer(serverPlayer.id);
+
+    shooter = otherPlayer || player;
   
     var fire = function (xORy, speed, spacingx, spacingy, shooter) {
       arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
@@ -347,14 +338,18 @@ App.stage3.prototype = {
       arrow = arrows.getFirstExists(false);
       this.arrowSound.play();
   
+      //  And fire it
       if (arrow && direction === 'up') {
-          //  And fire it
+        player.animations.play('attackUp');
         fire('y', -400, 0, -60, shooter);
       } else if (arrow && direction === 'down') {
+        player.animations.play('attackDown');
         fire('y', 400, 0, 60, shooter);
       } else if (arrow && direction === 'left') {
+        player.animations.play('attackLeft');
         fire('x', -400, -60, 0, shooter);
       } else if (arrow && direction === 'right') {
+        player.animations.play('attackRight');
         fire('x', 400, 60, 0, shooter);
       }
     }
@@ -363,25 +358,15 @@ App.stage3.prototype = {
   handleUserInput: function(cursors, player) {
     if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       if (cursors.left.isDown) {
-        App.info.socket.emit('shotsFired', {direction: 'left'});
-        player.animations.play('attackLeft');
-        this.fireArrow('left');
+        App.info.socket.emit('stage3.fireArrow', {direction: 'left'});
       } else if (cursors.right.isDown) {
-        App.info.socket.emit('shotsFired', {direction: 'right'});
-        player.animations.play('attackRight');
-        this.fireArrow('right');
+        App.info.socket.emit('stage3.fireArrow', {direction: 'right'});
       } else if (cursors.up.isDown) {
-        App.info.socket.emit('shotsFired', {direction: 'up'});
-        player.animations.play('attackUp');
-        this.fireArrow('up');
+        App.info.socket.emit('stage3.fireArrow', {direction: 'up'});
       } else if (cursors.down.isDown) {
-        App.info.socket.emit('shotsFired', {direction: 'down'});
-        player.animations.play('attackDown');
-        this.fireArrow('down');
+        App.info.socket.emit('stage3.fireArrow', {direction: 'down'});
       } else {
-        App.info.socket.emit('shotsFired', {direction: App.info.lastDirection});
-        player.animations.play('attack' + App.info.lastDirection[0].toUpperCase() + App.info.lastDirection.slice(1));
-        this.fireArrow(App.info.lastDirection);
+        App.info.socket.emit('stage3.fireArrow', {direction: App.info.lastDirection});
       }
     }
   
@@ -414,16 +399,6 @@ function setupSmoke(smoke) {
   smoke.animations.add('splat');
 }
 
-function startNextStage (context) {
-  // context.state.start('store');
-  App.info.socket.emit('nextStage', { from: 'stage3' });
-}
-
-function resetArrow (arrow) {
-    //  Called if the arrow goes out of the screen
-    arrow.kill();
-}
-
 function collisionHandlerPlayer (player, arrow) {
   //  When an arrow hits our player, we kill the arrow
   arrow.kill();
@@ -443,7 +418,7 @@ function collisionHandlerEnemy (enemyPlayer, arrow) {
   arrow.kill();
 
   //  Increase the score
-  // App.info.score += 20;
+  App.info.score += 20;
 
    // And create a smoke :)
   var smoke = smokes.getFirstExists(false);

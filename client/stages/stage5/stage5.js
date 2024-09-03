@@ -105,12 +105,12 @@ App.stage5.prototype = {
     }
 
     //timer
-    this.time.events.add(Phaser.Timer.SECOND * 60, function () {
+    // this.time.events.add(Phaser.Timer.SECOND * 60, function () {
       // this.backgroundMusic.stop();
       // this.state.start('store');
       // App.info.socket.emit('endGame');
       // App.info.difficulty += 1;
-    }, this);
+    // }, this);
 
 
     //this is important to bring in your players!!

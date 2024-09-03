@@ -134,7 +134,7 @@ App.stage1.prototype = {
 
     // if (cursors.down.isDown) {
     //   this.backgroundMusic.stop();
-    //   this.state.start('store');
+    //   this.state.start('stage3');
     // }
 
     // every frame, each player will emit their x,y,angle to every player
@@ -383,6 +383,9 @@ App.info = {
         App.info.stage.coinSound.play();
         App.info.stage.startLobbyCountdown();
       }
+    });
+    App.info.socket.on('stage3.arrowFired', function(data) {
+      App.info.stage.fireArrow(data.direction, data.shooter);
     });
     App.info.socket.on('startStage', function (stage) {
       App.info.stage.backgroundMusic.stop();

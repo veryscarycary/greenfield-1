@@ -63,7 +63,16 @@
 ```
 
 Visit http://localhost:3000 and Voila!
-      
+
+## Deployment via Railway.app
+
+For Mongodb service:
+
+- Point to greenfield-1 repo
+- Specify railway-mongodb.json as railway config
+- Use following value as Custom Start Command (important for ipv6 suppport):
+`docker-entrypoint.sh mongod --ipv6 --bind_ip ::,0.0.0.0`
+
 ## Roadmap
 
   Contact Iridescent Flume for access to extended roadmap

@@ -1,9 +1,9 @@
 // LOBBY
 
-const protocol = window.location.protocol;
-const hostname =window.location.hostname;
-const port = window.location.port;
-let socketUrl = `${protocol}//${hostname}`;
+var protocol = window.location.protocol;
+var hostname =window.location.hostname;
+var port = window.location.port;
+var socketUrl = `${protocol}//${hostname}`;
 
 // Append the port if it exists and is not the default HTTP/HTTPS port
 if (port && port !== "80" && port !== "443") {

@@ -27,6 +27,7 @@ App.stage1.prototype = {
     this.load.image('background', '/../../../assets/space.png');
     this.load.spritesheet('coin', '/../../../assets/coin.png', 32, 32);
     this.load.spritesheet('box', '/../../../assets/box.png', 34, 34);
+    this.load.script('otherPlayer1', '/stages/stage1/otherPlayer1.js');
 
     // audio
     this.load.audio(
@@ -101,6 +102,9 @@ App.stage1.prototype = {
       snow.autoScroll(20, 50);
       snow.fixedToCamera = true;
     }
+
+    //this is important to bring in your players!!
+    App.info.stageConnect();
   },
 
   update: function () {
@@ -371,9 +375,6 @@ App.info = {
     App.info.socket.on('moved player', function (data) {
       App.info.movePlayer(data);
     });
-    App.info.socket.on('stage', function () {
-      App.info.stageConnect();
-    });
     App.info.socket.on('stage1.movedbox', function (data) {
       if (App.info.stage.box) {
         App.info.stage.box.x = data.x;
@@ -490,10 +491,13 @@ App.info = {
 
     // every time a player moves, the x,y,angle are set on that player object
     // including self
-    movedPlayer.player.body.reset(data.x, data.y);
+    if (movedPlayer.player.body) {
+      movedPlayer.player.body.reset(data.x, data.y);
+      movedPlayer.player.body.rotation = Phaser.Math.degToRad(data.angle);
+    }
+
     movedPlayer.player.x = data.x;
     movedPlayer.player.y = data.y;
-    movedPlayer.player.body.rotation = Phaser.Math.degToRad(data.angle);
     movedPlayer.player.angle = data.angle;
   },
 

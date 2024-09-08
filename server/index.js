@@ -200,8 +200,6 @@ var constructGameObject = function () {
 var startNextStage = function (game) {
   game.currentStageIndex += 1;
 
-  
-
   // GAME END, go back to lobby
   if (game.currentStageIndex >= game.stages.length) {
     endGame();

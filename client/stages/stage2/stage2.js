@@ -228,11 +228,7 @@ App.stage2.prototype = {
     }
 
     //this is important to bring in your players!!
-    App.info.socketHandlers();
     App.info.stageConnect();
-
-    
-
   },
 
   update: function() {

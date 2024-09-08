@@ -109,9 +109,6 @@ var connectionFuncs = function (player) {
   player.on('repop', function (data) {
     repopPlayers(data, this);
   });
-  player.on('p2player', function (data) {
-    moveP2Player(data, this);
-  });
   player.on('startTimer', function () {
     startStage3Timer(this);
   });
@@ -203,6 +200,8 @@ var constructGameObject = function () {
 var startNextStage = function (game) {
   game.currentStageIndex += 1;
 
+  
+
   // GAME END, go back to lobby
   if (game.currentStageIndex >= game.stages.length) {
     endGame();
@@ -230,10 +229,11 @@ var setNextStageTimer = function (game, timeRemaining) {
       game.stageTimer = null;
       startNextStage(game);
 
-      // Kicks off contiuous next stage loop for rest of game
+      // If the next stages have a countdowns, this will contiuously loop
+      // through the stages for the rest of the game
       const nextStage = game.stages[game.currentStageIndex];
 
-      if (nextStage) {
+      if (nextStage && nextStage.time) {
         game.stageTimer = setNextStageTimer(game);
       }
     } else {
@@ -380,6 +380,10 @@ var newPlayer = function (data, player) {
 };
 
 var movePlayer = function (data, player) {
+  function hasMoved(incomingX, incomingY, incomingAngle) {
+    return incomingX !== movedPlayer.getX() || incomingY !== movedPlayer.getY() || incomingAngle !== movedPlayer.getAngle();
+  }
+
   var movedPlayer = findPlayer(player.id);
 
   if (!movedPlayer) {
@@ -387,51 +391,39 @@ var movePlayer = function (data, player) {
     return;
   }
 
-  movedPlayer.setX(data.x);
-  movedPlayer.setY(data.y);
-  movedPlayer.setAngle(data.angle);
-
-  player.broadcast.emit('moved player', {
-    id: movedPlayer.id,
-    x: movedPlayer.getX(),
-    y: movedPlayer.getY(),
-    angle: movedPlayer.getAngle(),
-  });
-};
-
-var moveP2Player = function (data, player) {
-  var movedPlayer = findPlayer(player.id);
-
-  if (!movedPlayer) {
-    console.log('player not found, cannot move' + player.id);
-    return;
+  if (hasMoved(data.x, data.y, data.angle)) {
+    movedPlayer.setX(data.x);
+    movedPlayer.setY(data.y);
+    movedPlayer.setAngle(data.angle);
+  
+    player.broadcast.emit('moved player', {
+      id: movedPlayer.id,
+      x: movedPlayer.getX(),
+      y: movedPlayer.getY(),
+      angle: movedPlayer.getAngle(),
+    });
   }
-
-  movedPlayer.setX(data.x);
-  movedPlayer.setY(data.y);
-  movedPlayer.setAngle(data.angle);
-
-  player.broadcast.emit('movep2player', {
-    id: movedPlayer.id,
-    x: movedPlayer.getX(),
-    y: movedPlayer.getY(),
-    angle: movedPlayer.getAngle(),
-  });
 };
 
 // stage 1
 
 var moveBox = function (data, player) {
+  function hasMoved(incomingX, incomingY) {
+    return incomingX !== serverInfo.stage1.box.x || incomingY !== serverInfo.stage1.box.y;
+  }
+
   const positionX = data.x;
   const positionY = data.y;
 
-  serverInfo.stage1.box.x = positionX;
-  serverInfo.stage1.box.y = positionY;
-
-  player.broadcast.emit('stage1.movedbox', {
-    x: positionX,
-    y: positionY,
-  });
+  if (hasMoved(positionX, positionY)) {
+    serverInfo.stage1.box.x = positionX;
+    serverInfo.stage1.box.y = positionY;
+  
+    player.broadcast.emit('stage1.movedbox', {
+      x: positionX,
+      y: positionY,
+    });
+  }
 };
 
 var takeCoin = function () {
@@ -467,3 +459,15 @@ http.listen(port, ip, function () {
 
 // server isn't dying when CTRL-C is pressed for some reason
 process.on('SIGINT', () => process.exit(1));
+
+setInterval(() => {
+  if (serverInfo.activeGames[0]) {
+    console.log(`
+      serverInfo.activeGames[0]:
+      stageTimer: ${serverInfo.activeGames[0].stageTimer}
+      stageTimeRemaining: ${serverInfo.activeGames[0].stageTimeRemaining}
+      stages: ${serverInfo.activeGames[0].stages}
+      currentStageIndex: ${serverInfo.activeGames[0].currentStageIndex}
+    `);
+  }
+}, 1000)

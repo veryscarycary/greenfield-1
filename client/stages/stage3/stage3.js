@@ -318,16 +318,20 @@ App.stage3.prototype = {
       x: player.x,
       y: player.y
     });
-
   },
 
   fireArrow: function(direction, serverPlayer) {
-    var otherPlayer = App.info.findPlayer(serverPlayer.id);
+    var remotePlayer = App.info.findPlayer(serverPlayer.id);
+    let otherPlayer;
 
+    if (remotePlayer) {
+      otherPlayer = remotePlayer.player;
+    }
+    
     shooter = otherPlayer || player;
   
     var fire = function (xORy, speed, spacingx, spacingy, shooter) {
-      arrow.reset(shooter.x + spacingx, shooter.y + spacingy);
+      arrow.reset(shooter.position.x + spacingx, shooter.position.y + spacingy);
       arrow.body.velocity[xORy] = speed;
       arrowTime = App.info.game.time.now + 200;
     };

@@ -23,9 +23,6 @@ App.stage5.prototype = {
   },
 
   create: function() {
-    //next stage
-    App.info.nextStage = 'stage1';
-
     this.backgroundMusic = this.sound.add('backgroundMusicSpace', 0.3, true);
     this.backgroundMusic.play();
     
@@ -208,11 +205,10 @@ App.stage5.prototype = {
       App.info.jump = 1;
     }
     //tells the server your location each frame- KEEP!!!
-    App.info.socket.emit('p2player', {
+    App.info.socket.emit('move player', {
       x: player.x,
       y: player.y,
       angle: player.angle
     });
-
   }
 };  

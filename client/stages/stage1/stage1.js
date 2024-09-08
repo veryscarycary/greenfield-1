@@ -142,10 +142,10 @@ App.stage1.prototype = {
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    // if (cursors.down.isDown) {
-    //   this.backgroundMusic.stop();
-    //   this.state.start('stage3');
-    // }
+    if (cursors.down.isDown) {
+      this.backgroundMusic.stop();
+      this.state.start('stage5');
+    }
 
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -375,9 +375,6 @@ App.info = {
     App.info.socket.on('moved player', function (data) {
       App.info.movePlayer(data);
     });
-    App.info.socket.on('movep2player', function (data) {
-      App.info.moveP2Player(data);
-    });
     App.info.socket.on('stage', function () {
       App.info.stageConnect();
     });
@@ -499,25 +496,9 @@ App.info = {
     // including self
     movedPlayer.player.x = data.x;
     movedPlayer.player.y = data.y;
+    movedPlayer.player.body.rotation = Phaser.Math.degToRad(data.angle);
     movedPlayer.player.angle = data.angle;
     // movedPlayer.player.body.reset(data.x, data.y);
-  },
-
-  // for stage 5
-  moveP2Player: function (data) {
-    var movedPlayer = App.info.findPlayer(data.id);
-
-    if (!movedPlayer) {
-      // if player is not in players array, don't continue
-      console.log('player not found', data.id);
-      return;
-    }
-
-    // every time a player moves, the x,y,angle are set on that player object
-    // including self
-
-    movedPlayer.player.angle = data.angle;
-    movedPlayer.player.body.reset(data.x, data.y);
   },
 
   removePlayer: function (data) {

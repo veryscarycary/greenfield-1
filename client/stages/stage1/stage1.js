@@ -144,7 +144,7 @@ App.stage1.prototype = {
 
     if (cursors.down.isDown) {
       this.backgroundMusic.stop();
-      this.state.start('stage5');
+      this.state.start('stage4');
     }
 
     // every frame, each player will emit their x,y,angle to every player
@@ -494,11 +494,11 @@ App.info = {
 
     // every time a player moves, the x,y,angle are set on that player object
     // including self
+    movedPlayer.player.body.reset(data.x, data.y);
     movedPlayer.player.x = data.x;
     movedPlayer.player.y = data.y;
     movedPlayer.player.body.rotation = Phaser.Math.degToRad(data.angle);
     movedPlayer.player.angle = data.angle;
-    // movedPlayer.player.body.reset(data.x, data.y);
   },
 
   removePlayer: function (data) {

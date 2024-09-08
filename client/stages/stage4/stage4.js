@@ -256,7 +256,7 @@ App.stage4.prototype = {
         App.info.players[i].update();
         this.physics.arcade.collide(player, App.info.players[i].player);
         this.physics.arcade.overlap(App.info.players[i].player, rainbowStar, function(otherPlayer, rainbowStar) {
-          this.collectRainbow(rainbowStar, 5, true, otherPlayer);
+          this.collectRainbowStar(rainbowStar, 5, true, otherPlayer);
         }, null, this);
         this.physics.arcade.overlap(App.info.players[i].player, skull, function(otherPlayer, skull) {
           this.collectPoison(skull, otherPlayer);

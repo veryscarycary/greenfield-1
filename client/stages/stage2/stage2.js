@@ -300,6 +300,7 @@ App.stage2.prototype = {
 
     if (playerTouching && !nextStageTimer) {
       nextStageTimer = setTimeout(function () {
+        nextStageTimer = null;
         App.info.socket.emit('stage2.nextStage');
         // context.state.start('store'); 
       }, NEXT_STAGE_DELAY);  

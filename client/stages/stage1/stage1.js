@@ -225,17 +225,15 @@ App.stage1.prototype = {
   },
 
   createLobbyTimer: function () {
-    if (!this.lobbyCountdownText) {
-      this.lobbyCountdownText = this.add.text(
-        this.world.centerX + 160,
-        45,
-        App.info.stageTimeRemaining,
-        {
-          fontSize: '50px',
-          fill: 'gold',
-        }
-      );
-    }
+    this.lobbyCountdownText = this.add.text(
+      this.world.centerX + 160,
+      45,
+      App.info.stageTimeRemaining,
+      {
+        fontSize: '50px',
+        fill: 'gold',
+      }
+    );
   },
 
   createPlayer: function () {
@@ -319,10 +317,8 @@ App.stage1.prototype = {
   startLobbyCountdown: function () {
     const COUNTDOWN_SECS = 10;
 
-    if (!this.lobbyCountdown) {
-      this.lobbyCountdown = COUNTDOWN_SECS;
-      this.createLobbyCountdownText();
-    }
+    this.lobbyCountdown = COUNTDOWN_SECS;
+    this.createLobbyCountdownText();
   },
 };
 

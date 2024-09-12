@@ -195,8 +195,6 @@ App.stage3.prototype = {
     smokes.createMultiple(30, 'splat');
     smokes.forEach(setupSmoke, this);
 
-    // App.info.socket.emit('startTimer');
-
     var timerText = (Math.floor(App.info.stageTimeRemaining / 60) + ':' + (App.info.stage % 60));
     timerAndScoreText = this.add.text(16, 16, (timerText + '\nScore: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold), {fontSize: '32px', fill: '#fff'});
     timerAndScoreText.fixedToCamera= true;

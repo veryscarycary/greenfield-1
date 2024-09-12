@@ -3,7 +3,6 @@
 App.stage5 = function(game) {
   console.log("starting stage5");
   App.info.game = game;
-
 };
 
 App.stage5.prototype = {

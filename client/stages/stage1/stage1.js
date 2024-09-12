@@ -1,7 +1,7 @@
 // LOBBY
 
 var protocol = window.location.protocol;
-var hostname =window.location.hostname;
+var hostname = window.location.hostname;
 var port = window.location.port;
 var socketUrl = `${protocol}//${hostname}`;
 
@@ -41,6 +41,10 @@ App.stage1.prototype = {
   },
 
   create: function () {
+    this.lobbyText = null;
+    this.lobbyCountdown = null;
+    this.lobbyCountdownText = null;
+
     this.physics.startSystem(Phaser.Physics.ARCADE);
     this.add.tileSprite(0, 0, 800, 600, 'background');
     this.physics.arcade.OVERLAP_BIAS = 10;
@@ -76,9 +80,6 @@ App.stage1.prototype = {
     });
     var style = { fill: 'white' };
 
-    //adds text to screen
-    this.createLobbyText();
-
     App.info.socketHandlers();
 
     // logs connected, clean slate for players,
@@ -105,6 +106,8 @@ App.stage1.prototype = {
 
     //this is important to bring in your players!!
     App.info.stageConnect();
+
+    App.info.socket.emit('serverInfoRequested');
   },
 
   update: function () {
@@ -118,9 +121,19 @@ App.stage1.prototype = {
       App.info.gold;
     scoreText.text = updatedScore;
 
+    //adds text to screen
+    this.createLobbyText();
+
     // update countdown
     if (this.lobbyCountdownText) {
       this.lobbyCountdownText.text = App.info.stageTimeRemaining;
+    }
+
+    // remove coin if game is currently playing
+    if (App.info.serverInfo && App.info.serverInfo.activeGames.length) {
+      if (App.info.stage.coin) {
+        App.info.stage.coin.kill();
+      }
     }
 
     // Play background music when the game starts
@@ -200,30 +213,52 @@ App.stage1.prototype = {
   },
 
   createLobbyText: function () {
-    var text =
-      'Waiting for new players!\nWhen all players are present,\n grab the coin to start!';
-    this.coolText = this.add.bitmapText(
-      this.world.centerX - 300,
-      120,
-      'pixel',
-      text,
-      30
-    );
-    this.coolText.align = 'center';
-    this.coolText.tint = 0xff00ff;
+    var serverInfo = App.info.serverInfo;
+    var isGameActive = serverInfo && serverInfo.activeGames.length && serverInfo.activeGames[0].currentStageIndex > 0;
+    
+    if (isGameActive) {
+      text = 'Game in progress.\nPlease wait until the next match!'
+      if (!this.lobbyText || this.lobbyText.text !== text) {
+        this.lobbyText && this.lobbyText.destroy();
+        this.lobbyText = this.add.bitmapText(
+          this.world.centerX - 350,
+          120,
+          'pixel',
+          text,
+          30,
+        );
+        this.lobbyText.align = 'center';
+        this.lobbyText.tint = 0xff00ff;
+      }
+    } else {
+      text =
+        'Waiting for new players!\nWhen all players are present,\n grab the coin to start!';
+      if (!this.lobbyText || this.lobbyText.text !== text) {
+        this.lobbyText && this.lobbyText.destroy();
+        this.lobbyText = this.add.bitmapText(
+          this.world.centerX - 300,
+          120,
+          'pixel',
+          text,
+          30,
+        );
+        this.lobbyText.align = 'center';
+        this.lobbyText.tint = 0xff00ff;
+      }
+    }
   },
 
   createLobbyCountdownText: function () {
     var text = 'Game starting in...';
-    this.lobbyText = this.add.bitmapText(
+    this.startingText = this.add.bitmapText(
       this.world.centerX - 210,
       50,
       'pixel',
       text,
       25
     );
-    this.lobbyText.align = 'center';
-    this.lobbyText.tint = 0xffd700;
+    this.startingText.align = 'center';
+    this.startingText.tint = 0xffd700;
 
     this.createLobbyTimer();
   },
@@ -324,6 +359,11 @@ App.stage1.prototype = {
     this.lobbyCountdown = COUNTDOWN_SECS;
     this.createLobbyCountdownText();
   },
+
+  cleanup: function() {
+    this.lobbyText && this.lobbyText.destroy();
+    this.lobbyCountdownText && this.lobbyCountdownText.destroy();
+  }
 };
 
 App.info = {
@@ -341,6 +381,7 @@ App.info = {
   jump: 1,
   difficulty: 1,
   nextStage: null,
+  serverInfo: null,
 
   // sets this player's socket
   socket: io.connect(socketUrl), // sets this player's socket
@@ -392,11 +433,19 @@ App.info = {
       App.info.stage.fireArrow(data.direction, data.shooter);
     });
     App.info.socket.on('startStage', function (stage) {
+      if (App.info.stage.cleanup) {
+        App.info.stage.cleanup();
+      }
+
       App.info.stage.backgroundMusic.stop();
       App.info.stage.state.start(stage);
+
     });
     App.info.socket.on('stageTimeRemainingUpdated', function (stageTimeRemaining) {
       App.info.stageTimeRemaining = stageTimeRemaining;
+    });
+    App.info.socket.on('serverInfo', function (serverInfo) {
+      App.info.serverInfo = serverInfo;
     });
   },
   //this function is called  when you connect to a new stage, it resets the players

@@ -109,8 +109,8 @@ var connectionFuncs = function (player) {
   player.on('repop', function (data) {
     repopPlayers(data, this);
   });
-  player.on('startTimer', function () {
-    startStage3Timer(this);
+  player.on('serverInfoRequested', function () {
+    sendServerInfo();
   });
   player.on('stage3.fireArrow', function (data) {
     fireArrow(data, this);
@@ -145,6 +145,13 @@ var connectionFuncs = function (player) {
   //   startNextStage(fromStage, this);
   // });
 };
+
+function sendServerInfo() {
+  io.emit('serverInfo', { activeGames: serverInfo.activeGames.map(game => ({
+    stageTimeRemaining: game.stageTimeRemaining,
+    currentStageIndex: game.currentStageIndex,
+  })) });
+}
 
 var fireArrow = function (data, player) {
   var shootingPlayer = findPlayer(player.id);
@@ -208,6 +215,8 @@ var startNextStage = function (game) {
   }
 
   game.wasStoreWitchHatAlreadyTouched = false; // in order to reset witchhat for later store visits
+
+  sendServerInfo();
 }
 
 // WARNING: Will start next stage loop continuously, if stage.time is a valid number
@@ -307,7 +316,7 @@ var repopPlayers = function (data, player) {
   var pastSelf = findPlayer(player.id);
   players.splice(players.indexOf(pastSelf), 1);
 
-  //create a new player objext
+  //create a new player object
   var nPlayer = new Player(data.x, data.y, data.angle);
   if (findPlayer(player.id)) {
     console.log('player already stored in server!');
@@ -459,13 +468,12 @@ http.listen(port, ip, function () {
 process.on('SIGINT', () => process.exit(1));
 
 setInterval(() => {
-  if (serverInfo.activeGames[0]) {
-    console.log(`
-      serverInfo.activeGames[0]:
-      stageTimer: ${serverInfo.activeGames[0].stageTimer}
-      stageTimeRemaining: ${serverInfo.activeGames[0].stageTimeRemaining}
-      stages: ${serverInfo.activeGames[0].stages}
-      currentStageIndex: ${serverInfo.activeGames[0].currentStageIndex}
-    `);
-  }
+  sendServerInfo();
+    // console.log(`
+    //   serverInfo.activeGames[0]:
+    //   stageTimer: ${serverInfo.activeGames[0].stageTimer}
+    //   stageTimeRemaining: ${serverInfo.activeGames[0].stageTimeRemaining}
+    //   stages: ${serverInfo.activeGames[0].stages}
+    //   currentStageIndex: ${serverInfo.activeGames[0].currentStageIndex}
+    // `);
 }, 1000)

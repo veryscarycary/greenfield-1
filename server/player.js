@@ -21,10 +21,6 @@ var Player = function (startX, startY, startAngle) {
     return angle;
   };
 
-  var getSocketRoom = function () {
-    return socketRoom;
-  };
-
   var setX = function (newX) {
     x = newX;
   };
@@ -37,21 +33,16 @@ var Player = function (startX, startY, startAngle) {
     angle = newAngle;
   };
 
-  var setSocketRoom = function (newAngle) {
-    socketRoom = socketRoom;
-  };
-
   // Define which variables and methods can be accessed
   return {
     getX: getX,
     getY: getY,
     getAngle: getAngle,
-    getSocketRoom: getSocketRoom,
     setX: setX,
     setY: setY,
     setAngle: setAngle,
-    setSocketRoom: setSocketRoom,
-    id: id
+    id: id,
+    socketRoom: socketRoom,
   };
 };
 

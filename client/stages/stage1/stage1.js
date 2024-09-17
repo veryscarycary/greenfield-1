@@ -250,6 +250,7 @@ App.stage1.prototype = {
 
   createLobbyCountdownText: function () {
     var text = 'Game starting in...';
+    this.startingText && this.startingText.destroy();
     this.startingText = this.add.bitmapText(
       this.world.centerX - 210,
       50,
@@ -264,6 +265,7 @@ App.stage1.prototype = {
   },
 
   createLobbyTimer: function () {
+    this.lobbyCountdownText && this.lobbyCountdownText.destroy();
     this.lobbyCountdownText = this.add.text(
       this.world.centerX + 160,
       45,
@@ -362,6 +364,7 @@ App.stage1.prototype = {
 
   cleanup: function() {
     this.lobbyText && this.lobbyText.destroy();
+    this.startingText && this.startingText.destroy();
     this.lobbyCountdownText && this.lobbyCountdownText.destroy();
   }
 };

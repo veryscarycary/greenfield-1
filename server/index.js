@@ -22,10 +22,9 @@ const STAGE_TIME_ZELDA = 60;
 const STAGE_TIME_PLATFORMS = 60;
 const STAGE_TIME_SPACE = 60;
 
+const GAME_ROOM_NAME = 'game0';
+
 var players = [];
-global.counter = 0;
-var stage3Timer = 60;
-var timerStarted = false;
 
 app.use(express.static(__dirname + '/../client'));
 app.use(bodyParser.json());
@@ -147,10 +146,12 @@ var connectionFuncs = function (player) {
 };
 
 function sendServerInfo() {
-  io.emit('serverInfo', { activeGames: serverInfo.activeGames.map(game => ({
-    stageTimeRemaining: game.stageTimeRemaining,
-    currentStageIndex: game.currentStageIndex,
-  })) });
+  io.emit('serverInfo', {
+    activeGames: serverInfo.activeGames.map(game => ({
+      stageTimeRemaining: game.stageTimeRemaining,
+      currentStageIndex: game.currentStageIndex,
+    }))
+  });
 }
 
 var fireArrow = function (data, player) {
@@ -161,7 +162,7 @@ var fireArrow = function (data, player) {
     return;
   }
 
-  io.emit('stage3.arrowFired', {
+  io.to(GAME_ROOM_NAME).emit('stage3.arrowFired', {
     shooter: {
       id: shootingPlayer.id,
       x: shootingPlayer.getX(),
@@ -172,11 +173,10 @@ var fireArrow = function (data, player) {
 };
 
 var startNewGame = function (player) {
-  // const players = findPlayersInLobby();   // TODO: GET DIFFERENT PLAYERS DEPENDING ON GAME
   const newGame = constructGameObject();
   serverInfo.activeGames.push(newGame);
+  setGameSocketRoom();
   return newGame;
-  // io.emit('startStage', newGame.stages[newGame.currentStageIndex].stageName);
 };
 
 var constructGameObject = function () {
@@ -211,7 +211,7 @@ var startNextStage = function (game) {
   if (game.currentStageIndex >= game.stages.length) {
     endGame();
   } else {
-    io.emit('startStage', game.stages[game.currentStageIndex].name);
+    io.to(GAME_ROOM_NAME).emit('startStage', game.stages[game.currentStageIndex].name);
   }
 
   game.wasStoreWitchHatAlreadyTouched = false; // in order to reset witchhat for later store visits
@@ -225,12 +225,12 @@ var setNextStageTimer = function (game, timeRemaining) {
   if (stageTime && timeRemaining === undefined) {
     // Setting new stage with declared stage time
     game.stageTimeRemaining = stageTime;
-    io.emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
+    io.to(GAME_ROOM_NAME).emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
   }
 
   return setTimeout(() => {
     game.stageTimeRemaining -= 1;
-    io.emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
+    io.to(GAME_ROOM_NAME).emit('stageTimeRemainingUpdated', game.stageTimeRemaining);
 
     if (game.stageTimeRemaining <= 0) {
       game.stageTimer = null;
@@ -261,30 +261,28 @@ var cancelStoreTimerAndStartNextStage = function () {
   game.wasStoreWitchHatAlreadyTouched = true;
 }
 
-var endGame = function (player) {
-  serverInfo.activeGames = [];
-
+var endGame = function () {
   // Start next stage for all players in current game
-  io.emit('startStage', 'stage1');
+  io.to(GAME_ROOM_NAME).emit('startStage', 'stage1');
+  resetGameSocketRoom();
+  serverInfo.activeGames = [];
 };
 
-// var startStage3Timer = function (player) {
-//   if (timerStarted) {
-//     return;
-//   }
-//   var timer = setInterval(function () {
-//     stage3Timer--;
-//     if (stage3Timer <= 0) {
-//       // start next stage, cancel timer and allow it to be started again
-//       io.sockets.emit('startNextStage');
-//       clearInterval(timer);
-//       timerStarted = false;
-//     }
-//     // send timer to all clients
-//     io.sockets.emit('updateTimer', stage3Timer);
-//   }, 1000);
-//   timerStarted = true;
-// };
+var setGameSocketRoom = function() {
+  // Map over the players to set their socket room and get their sockets
+  serverInfo.activeGames[0].players.forEach(player => {
+    player.socketRoom = GAME_ROOM_NAME;
+    io.sockets.sockets[player.id].join(GAME_ROOM_NAME); // Access the socket by player ID directly
+  });
+};
+
+var resetGameSocketRoom = function() {
+  // Map over the players to set their socket room and get their sockets
+  serverInfo.activeGames[0].players.forEach(player => {
+    player.socketRoom = null;
+    io.sockets.sockets[player.id].leave(GAME_ROOM_NAME); // Access the socket by player ID directly
+  });
+};
 
 var playerDisconnect = function (player) {
   console.log('player disconnected:' + player.id);
@@ -305,85 +303,154 @@ var playerDisconnect = function (player) {
 
   //tell clients to remove this specific player
   player.broadcast.emit('removed player', { id: player.id });
-  console.log('players>> ', players);
 };
 
 //a function used when changing stages-similair to new player
 var repopPlayers = function (data, player) {
   console.log('repopPlayers server side function called');
 
-  //
   var pastSelf = findPlayer(player.id);
   players.splice(players.indexOf(pastSelf), 1);
 
-  //create a new player object
+  // create a new player object
   var nPlayer = new Player(data.x, data.y, data.angle);
   if (findPlayer(player.id)) {
     console.log('player already stored in server!');
     return;
   }
-  nPlayer.id = player.id;
+  nPlayer.id = pastSelf.id;
+  nPlayer.socketRoom = pastSelf.socketRoom;
 
-  //send this object to existing clients
-  player.broadcast.emit('newplayer', {
-    id: nPlayer.id,
-    x: nPlayer.getX(),
-    y: nPlayer.getY(),
-    angle: nPlayer.getAngle(),
-  });
-  console.log('server side players array', players);
-  //inform newly created player of previous players
-  for (var i = 0; i < players.length; i++) {
-    var oldPlayer = players[i];
-    player.emit('newplayer', {
-      id: oldPlayer.id,
-      x: oldPlayer.getX(),
-      y: oldPlayer.getY(),
-      angle: oldPlayer.getAngle(),
+  if (player.rooms[GAME_ROOM_NAME]) {
+    // send this object to existing clients(except the sender),
+    // in order to render this player for already loaded-in players
+    player.broadcast.to(GAME_ROOM_NAME).emit('newplayer', {
+      id: nPlayer.id,
+      x: nPlayer.getX(),
+      y: nPlayer.getY(),
+      angle: nPlayer.getAngle(),
+    });
+
+    // inform the newly created player 1 of previous players (to render all players on stage start)
+    // for (var i = 0; i < players.length; i++) {
+    const activeGamePlayers = players.filter(player => player.socketRoom === GAME_ROOM_NAME);
+    activeGamePlayers.forEach(activeGamePlayer => {
+      player.emit('newplayer', {
+        id: activeGamePlayer.id,
+        x: activeGamePlayer.getX(),
+        y: activeGamePlayer.getY(),
+        angle: activeGamePlayer.getAngle(),
+      });
+    });
+    // }
+  } else {
+    // send this object to existing clients in lobby(except the sender),
+    // in order to render this player for already loaded-in players in lobby
+    messageEveryoneNotInRoom(GAME_ROOM_NAME, player, 'newplayer', {
+      id: nPlayer.id,
+      x: nPlayer.getX(),
+      y: nPlayer.getY(),
+      angle: nPlayer.getAngle(),
+    } );
+
+    // inform the newly created player 1 of previous players (to render all players on stage start)
+    const lobbyPlayers = players.filter(player => player.socketRoom !== GAME_ROOM_NAME);
+    lobbyPlayers.forEach(lobbyPlayer => {
+      player.emit('newplayer', {
+        id: lobbyPlayer.id,
+        x: lobbyPlayer.getX(),
+        y: lobbyPlayer.getY(),
+        angle: lobbyPlayer.getAngle(),
+      });
     });
   }
 
   // //add to players array
   players.push(nPlayer);
-  console.log('serverside players', players);
 };
 
+// This function sends a message to everyone NOT in 'room1'
+// EXCLUDING self
+function messageEveryoneNotInRoom(roomName, player, event, data) {
+  // Iterate over all connected sockets
+  for (var socketId in io.sockets.sockets) {
+      if (io.sockets.sockets.hasOwnProperty(socketId)) {
+          var socket = io.sockets.sockets[socketId];
+
+          if (socketId === player.id) {
+            break; // don't want to repop our own character
+          }
+
+          // Check if the socket is NOT in the room (therefore, in lobby)
+          if (!socket.rooms[roomName]) {
+              // If not in the room, emit the event with the data
+              socket.emit(event, data);
+          }
+      }
+  }
+}
+
 var newPlayer = function (data, player) {
-  console.log('newplayer server side function called');
+  var pastPlayer = findPlayer(player.id);
 
-  //create a new player objext
-  var nPlayer = new Player(data.x, data.y, data.angle);
-
-  if (findPlayer(player.id)) {
+  if (pastPlayer) {
     console.log('player already stored in server!');
     return;
   }
 
+  // create a new player object
+  var nPlayer = new Player(data.x, data.y, data.angle);
+
   nPlayer.id = player.id;
+  nPlayer.socketRoom = player.rooms[GAME_ROOM_NAME];
 
-  //send this object to existing clients
-  player.broadcast.emit('newplayer', {
-    id: nPlayer.id,
-    x: nPlayer.getX(),
-    y: nPlayer.getY(),
-    angle: nPlayer.getAngle(),
-  });
+  if (player.rooms[GAME_ROOM_NAME]) {
+    // send this object to existing clients(except the sender),
+    // in order to render this player for already loaded-in players
+    player.broadcast.to(GAME_ROOM_NAME).emit('newplayer', {
+      id: nPlayer.id,
+      x: nPlayer.getX(),
+      y: nPlayer.getY(),
+      angle: nPlayer.getAngle(),
+    });
 
-  //inform newly created player of previous players
-  for (var i = 0; i < players.length; i++) {
-    var oldPlayer = players[i];
-    player.emit('newplayer', {
-      id: oldPlayer.id,
-      x: oldPlayer.getX(),
-      y: oldPlayer.getY(),
-      angle: oldPlayer.getAngle(),
+    // inform the newly created player 1 of previous players (to render all players on stage start)
+    // for (var i = 0; i < players.length; i++) {
+    const activeGamePlayers = players.filter(player => player.socketRoom === GAME_ROOM_NAME);
+    activeGamePlayers.forEach(activeGamePlayer => {
+      player.emit('newplayer', {
+        id: activeGamePlayer.id,
+        x: activeGamePlayer.getX(),
+        y: activeGamePlayer.getY(),
+        angle: activeGamePlayer.getAngle(),
+      });
+    });
+    // }
+  } else {
+    // send this object to existing clients in lobby(except the sender),
+    // in order to render this player for already loaded-in players in lobby
+    messageEveryoneNotInRoom(GAME_ROOM_NAME, player, 'newplayer', {
+      id: nPlayer.id,
+      x: nPlayer.getX(),
+      y: nPlayer.getY(),
+      angle: nPlayer.getAngle(),
+    } );
+
+    // inform the newly created player 1 of previous players (to render all players on stage start)
+    const lobbyPlayers = players.filter(player => player.socketRoom !== GAME_ROOM_NAME);
+    lobbyPlayers.forEach(lobbyPlayer => {
+      player.emit('newplayer', {
+        id: lobbyPlayer.id,
+        x: lobbyPlayer.getX(),
+        y: lobbyPlayer.getY(),
+        angle: lobbyPlayer.getAngle(),
+      });
     });
   }
 
   //add to players array
 
   players.push(nPlayer);
-  console.log('serverside players', players);
 };
 
 var movePlayer = function (data, player) {
@@ -450,16 +517,6 @@ var findPlayer = function (id) {
   return false;
 };
 
-var findPlayersInLobby = function () {
-  const lobbyPlayers = players.filter(
-    (player) =>
-      !serverInfo.activeGames.some((activeGame) =>
-        activeGame.players.includes(player)
-      )
-  );
-  return lobbyPlayers;
-};
-
 http.listen(port, ip, function () {
   console.log(`Listening on http://${ip}:${port}`);
 });
@@ -469,11 +526,4 @@ process.on('SIGINT', () => process.exit(1));
 
 setInterval(() => {
   sendServerInfo();
-    // console.log(`
-    //   serverInfo.activeGames[0]:
-    //   stageTimer: ${serverInfo.activeGames[0].stageTimer}
-    //   stageTimeRemaining: ${serverInfo.activeGames[0].stageTimeRemaining}
-    //   stages: ${serverInfo.activeGames[0].stages}
-    //   currentStageIndex: ${serverInfo.activeGames[0].currentStageIndex}
-    // `);
 }, 1000)

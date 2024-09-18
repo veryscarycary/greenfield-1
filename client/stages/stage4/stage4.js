@@ -538,6 +538,7 @@ App.stage4.prototype = {
     // player.y = player.y - 10;
     this.starPowerTimeout = setTimeout(() => {
       clearInterval(this.starPowerRainbowInterval);
+      this.starPowerRainbowInterval = null;
       player.tint = 0xFFFFFF; //remove tint
       player.scale.setTo(1, 1);
       special = false;

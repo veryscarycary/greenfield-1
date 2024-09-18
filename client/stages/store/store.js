@@ -81,7 +81,7 @@ App.store.prototype = {
     player.anchor.set(0.5);
 
     //scoreboard
-    scoreText = this.add.text(16, 16, 'score: ' + App.info.score, {fontSize: '25px', fill: '#fff'});
+    scoreText = this.add.text(16, 16, 'Score: ' + App.info.score, {fontSize: '25px', fill: '#fff'});
     scoreText.fixedToCamera = true;
 
     //timer
@@ -288,8 +288,6 @@ App.store.prototype = {
     this.physics.arcade.overlap(player, witchhat, function(player, witchhat) {
       witchhat.kill();
       setTimeout(function () {
-        // context.backgroundMusic.stop();
-        // context.state.start(App.info.nextStage); 
         App.info.socket.emit('store.witchHat');
       }, 200);
     }, null, this);

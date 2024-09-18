@@ -40,9 +40,7 @@ App.stage2.prototype = {
   },
 
   create: function() {
-    //next stage
-    App.info.nextStage = 'stage3';
-
+    
     this.coinSound = this.sound.add('coin', 0.1, false);
     this.hurt1Sound = this.sound.add('hurt1', 0.3, false);
     this.hurt2Sound = this.sound.add('hurt2', 0.3, false);
@@ -233,7 +231,7 @@ App.stage2.prototype = {
 
   update: function() {
     var context = this;
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
+    var updatedScore = ('Score: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText.text = updatedScore;
     // playersTouching = false;
     playerTouching = false;

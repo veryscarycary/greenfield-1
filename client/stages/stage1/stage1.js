@@ -68,7 +68,7 @@ App.stage1.prototype = {
     this.backgroundMusic.play();
 
     var updatedScore =
-      'Score:' +
+      'Score: ' +
       App.info.score +
       '\nHealth: ' +
       Math.floor(App.info.health) +
@@ -78,7 +78,6 @@ App.stage1.prototype = {
       fontSize: '25px',
       fill: '#fff',
     });
-    var style = { fill: 'white' };
 
     App.info.socketHandlers();
 
@@ -113,7 +112,7 @@ App.stage1.prototype = {
   update: function () {
     var context = this;
     var updatedScore =
-      'Score:' +
+      'Score: ' +
       App.info.score +
       '\nHealth: ' +
       Math.floor(App.info.health) +
@@ -130,9 +129,12 @@ App.stage1.prototype = {
     }
 
     // remove coin if game is currently playing
-    if (App.info.serverInfo && App.info.serverInfo.activeGames.length) {
-      if (App.info.stage.coin) {
-        App.info.stage.coin.kill();
+    if (App.info.serverInfo) {
+      if (App.info.serverInfo.activeGames.length && this.coin) {
+        this.coin.kill();
+        this.coin = null;
+      } else if (!App.info.serverInfo.activeGames.length && !this.coin) {
+        this.coin = this.createCoin();
       }
     }
 
@@ -159,10 +161,10 @@ App.stage1.prototype = {
 
     // this.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
-    if (cursors.down.isDown) {
-      this.backgroundMusic.stop();
-      this.state.start('stage4');
-    }
+    // if (cursors.down.isDown) {
+    //   this.backgroundMusic.stop();
+    //   this.state.start('stage4');
+    // }
 
     // every frame, each player will emit their x,y,angle to every player
     // including self
@@ -217,7 +219,9 @@ App.stage1.prototype = {
     var isGameActive = serverInfo && serverInfo.activeGames.length && serverInfo.activeGames[0].currentStageIndex > 0;
     
     if (isGameActive) {
-      text = 'Game in progress.\nPlease wait until the next match!'
+      const text = 'Game in progress.\nPlease wait until the next match!'
+      const approxTimeLeftText = '(Approx.   mins...)';
+
       if (!this.lobbyText || this.lobbyText.text !== text) {
         this.lobbyText && this.lobbyText.destroy();
         this.lobbyText = this.add.bitmapText(
@@ -230,11 +234,40 @@ App.stage1.prototype = {
         this.lobbyText.align = 'center';
         this.lobbyText.tint = 0xff00ff;
       }
+      if (!this.approxTimeLeft || this.approxTimeLeft.text !== approxTimeLeftText) {
+        this.approxTimeLeft && this.approxTimeLeft.destroy();
+        this.approxTimeLeft = this.add.bitmapText(
+          this.world.centerX - 100,
+          200,
+          'pixel',
+          approxTimeLeftText,
+          20,
+        );
+        this.approxTimeLeft.align = 'center';
+        this.approxTimeLeft.tint = 0xff00ff;
+      }
+      if (!this.approxTimeLeftNumber || this.approxTimeLeftNumber.text !== serverInfo.activeGames[0].approxMinutesLeft.toString()) {
+        this.approxTimeLeftNumber && this.approxTimeLeftNumber.destroy();
+        this.approxTimeLeftNumber = this.add.text(
+          this.world.centerX + 25,
+          202,
+          serverInfo.activeGames[0].approxMinutesLeft,
+          {
+            fontSize: '22px',
+            fill: 'red',
+          }
+        );
+        this.approxTimeLeft.align = 'center';
+        // this.approxTimeLeft.tint = 0xff00ff;
+      }
     } else {
-      text =
+      const text =
         'Waiting for new players!\nWhen all players are present,\n grab the coin to start!';
+
       if (!this.lobbyText || this.lobbyText.text !== text) {
         this.lobbyText && this.lobbyText.destroy();
+        this.approxTimeLeft && this.approxTimeLeft.destroy();
+        this.approxTimeLeftNumber && this.approxTimeLeftNumber.destroy();
         this.lobbyText = this.add.bitmapText(
           this.world.centerX - 300,
           120,
@@ -383,7 +416,6 @@ App.info = {
   snow: false,
   jump: 1,
   difficulty: 1,
-  nextStage: null,
   serverInfo: null,
 
   // sets this player's socket

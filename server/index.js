@@ -121,13 +121,15 @@ var connectionFuncs = function (player) {
     takeCoin();
   });
   player.on('stage2.nextStage', function () {
-    const game = serverInfo.activeGames[0];
+    endGame();
+    // const game = serverInfo.activeGames[0];
 
-    if (!game.wasStage2DoorAlreadyTouched) {
-      game.wasStage2DoorAlreadyTouched = true;
-      startNextStage(game);
-      game.stageTimer = setNextStageTimer(game);
-    }
+    // if (!game.wasStage2DoorAlreadyTouched) {
+    //   game.wasStage2DoorAlreadyTouched = true;
+    //   game.approxMinutesLeft = calculateApproxMinutesLeft(game.stages, game.currentStageIndex);
+    //   startNextStage(game);
+    //   game.stageTimer = setNextStageTimer(game);
+    // }
   });
   // player.on('startGame', function () {
   //   console.log('STARTING GAME');
@@ -148,9 +150,12 @@ var connectionFuncs = function (player) {
 function sendServerInfo() {
   io.emit('serverInfo', {
     activeGames: serverInfo.activeGames.map(game => ({
+      players: game.players.map(player => ({ id: player.id })),
       stageTimeRemaining: game.stageTimeRemaining,
       currentStageIndex: game.currentStageIndex,
-    }))
+      approxMinutesLeft: game.approxMinutesLeft,
+    })),
+    players: players.map(player => ({ id: player.id })),
   });
 }
 
@@ -192,13 +197,14 @@ var constructGameObject = function () {
   ];
 
   const game = {
-    players,
+    players: [...players],
     stages,
     stageTimer: null,
     stageTimeRemaining: 0,
     currentStageIndex: 0,
     wasStage2DoorAlreadyTouched: false,
     wasStoreWitchHatAlreadyTouched: false,
+    approxMinutesLeft: calculateApproxMinutesLeft(stages, 0),
   };
 
   return game;
@@ -234,6 +240,7 @@ var setNextStageTimer = function (game, timeRemaining) {
 
     if (game.stageTimeRemaining <= 0) {
       game.stageTimer = null;
+      game.approxMinutesLeft = calculateApproxMinutesLeft(game.stages, game.currentStageIndex);
       startNextStage(game);
 
       // If the next stages have a countdowns, this will contiuously loop
@@ -255,6 +262,7 @@ var cancelStoreTimerAndStartNextStage = function () {
   clearTimeout(game.stageTimer);
   game.stageTimer = null;
 
+  game.approxMinutesLeft = calculateApproxMinutesLeft(game.stages, game.currentStageIndex);
   startNextStage(game);
   game.stageTimer = setNextStageTimer(game);
 
@@ -280,7 +288,9 @@ var resetGameSocketRoom = function() {
   // Map over the players to set their socket room and get their sockets
   serverInfo.activeGames[0].players.forEach(player => {
     player.socketRoom = null;
-    io.sockets.sockets[player.id].leave(GAME_ROOM_NAME); // Access the socket by player ID directly
+    if (io.sockets.sockets[player.id]) {
+      io.sockets.sockets[player.id].leave(GAME_ROOM_NAME); // Access the socket by player ID directly
+    }
   });
 };
 
@@ -289,16 +299,20 @@ var playerDisconnect = function (player) {
   var removedPlayer = findPlayer(player.id);
 
   if (!removedPlayer) {
-    console.log('player not found, cannont disconnect:' + player.id);
+    console.log('player not found, cannot disconnect:' + player.id);
     return;
   }
 
   players.splice(players.indexOf(removedPlayer), 1);
+  
+  const game = serverInfo.activeGames[0];
+  
+  if (game && game.players.indexOf(removedPlayer) >= 0) {
+    game.players.splice(game.players.indexOf(removedPlayer), 1);
 
-  const game = serverInfo.activeGames[0]; // INFO MAKE PARALLEL GAMES AVAILABLE
-
-  if (game && game.players.length === 0) {
-    serverInfo.activeGames.splice(serverInfo.activeGames.indexOf(game), 1);
+    if (game.players.length === 0) {
+      serverInfo.activeGames.splice(serverInfo.activeGames.indexOf(game), 1);
+    }
   }
 
   //tell clients to remove this specific player
@@ -506,8 +520,18 @@ var takeCoin = function () {
   game.stageTimer = setNextStageTimer(game);
 };
 
+var calculateApproxMinutesLeft = function(stages, currentStageIndex) {
+  if (currentStageIndex === stages.length - 1) {
+    return 1;
+  }
 
-//helper function to find player in our stored players array
+  const secondsLeft = stages.slice(currentStageIndex + 1).reduce((acc, curr) => {
+    return typeof curr.time === 'number' ? acc + curr.time : acc;
+  }, 0);
+  return Math.floor(secondsLeft / 60);
+};
+
+// helper function to find player in our stored players array
 var findPlayer = function (id) {
   for (var i = 0; i < players.length; i++) {
     if (players[i].id === id) {
@@ -526,4 +550,6 @@ process.on('SIGINT', () => process.exit(1));
 
 setInterval(() => {
   sendServerInfo();
+  if (serverInfo.activeGames.length)
+    console.log('serverInfo.approxMinutesLeft', JSON.stringify(serverInfo.activeGames[0].approxMinutesLeft));
 }, 1000)

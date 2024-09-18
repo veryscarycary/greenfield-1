@@ -77,7 +77,7 @@ App.stage5.prototype = {
     player.body.collides(App.info.cherryGroup, this.hitCherry, this);
     player.body.createBodyCallback(this.world, this.hit, this);
 
-    var updatedScore = ('Score:' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
+    var updatedScore = ('Score: ' + App.info.score + '\nHealth: ' + Math.floor(App.info.health) + '\nGold: ' + App.info.gold);
     scoreText = this.add.text(16, 16, updatedScore, {fontSize: '24px', fill: '#fff'});
 
     var text = "In PACMAN-SPACE, \n beware of GHOSTS";

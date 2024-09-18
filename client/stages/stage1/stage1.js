@@ -81,9 +81,9 @@ App.stage1.prototype = {
 
     App.info.socketHandlers();
 
-    // logs connected, clean slate for players,
-    // and then adds self as a player to player list
-    App.info.socketConnect();
+    // this is important to bring in your players!!
+    // clean slate for players, and then adds self as a player to player list
+    App.info.stageConnect();
 
     // this.key1 = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
@@ -102,9 +102,6 @@ App.stage1.prototype = {
       snow.autoScroll(20, 50);
       snow.fixedToCamera = true;
     }
-
-    //this is important to bring in your players!!
-    App.info.stageConnect();
 
     App.info.socket.emit('serverInfoRequested');
   },
@@ -149,10 +146,6 @@ App.stage1.prototype = {
 
     this.enableCollisions();
     this.enableOtherPlayersCollisions();
-
-    // if (this.doesAnyPlayerHaveCoin()) { // BEFORE SERVER SIDE LOGIC
-    //   this.startLobbyCountdown();
-    // }
 
     this.setPlayerAnimations(cursors);
 
@@ -258,7 +251,6 @@ App.stage1.prototype = {
           }
         );
         this.approxTimeLeft.align = 'center';
-        // this.approxTimeLeft.tint = 0xff00ff;
       }
     } else {
       const text =
@@ -318,7 +310,6 @@ App.stage1.prototype = {
     player.body.gravity.y = 300 * App.info.weight;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
-    // player.hasCoin = false;
   },
 
   enableCollisions: function () {
@@ -327,7 +318,6 @@ App.stage1.prototype = {
     this.physics.arcade.collide(box, platforms);
     this.physics.arcade.collide(player, box);
     this.physics.arcade.collide(player, coin, () => {
-      // player.hasCoin = true;
       App.info.socket.emit('stage1.takeCoin');
     });
   },
@@ -343,27 +333,12 @@ App.stage1.prototype = {
           App.info.players[i].player,
           coin,
           function () {
-            // App.info.players[i].player.hasCoin = true;
-            // coin.kill();
             App.info.socket.emit('stage1.takeCoin');
           }
         );
         this.physics.arcade.collide(App.info.players[i].player, box);
       }
     }
-  },
-
-
-  //  BEFORE SERVER SIDE LOGIC
-  // doesAnyPlayerHaveCoin: function () {
-  //   return (
-  //     App.info.player.hasCoin ||
-  //     App.info.players.some((player) => player.hasCoin)
-  //   );
-  // },
-
-  isOnlyOnePlayer: function () {
-    return App.info.players.length === 0;
   },
 
   setPlayerAnimations: function (cursors) {
@@ -497,25 +472,6 @@ App.info = {
     });
   },
 
-  //this is fired on our initial connect-it starts a new game
-  socketConnect: function () {
-    console.log('connected to server');
-    console.log('players array', App.info.players);
-
-    // sets a clean slate for players (on the screen and in array)
-    App.info.players.forEach(function (player) {
-      player.player.kill();
-    });
-    App.info.players = [];
-
-    // lets all players know, including self, to add/create this player
-    // (runs 'createPlayer')
-    App.info.socket.emit('new player', {
-      x: player.x,
-      y: player.y,
-      angle: player.angle,
-    });
-  },
   socketDisconnect: function () {
     // simply hears when the user disconnects from the server
     // and logs that the player has disconnected

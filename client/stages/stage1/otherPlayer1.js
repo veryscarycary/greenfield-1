@@ -1,4 +1,4 @@
-var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
+var RemotePlayer = function (id, game, player, startX, startY, startAngle) {
   
   //declares variables
   var x = startX;
@@ -21,7 +21,7 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
 
 
   //this name is good
-  this.player.name = index.toString();
+  this.player.name = id.toString();
 
   //these physics you can mess with based on your level
   this.game.physics.enable(this.player, Phaser.Physics.ARCADE);

@@ -99,9 +99,6 @@ var connectionFuncs = function (player) {
   player.on('disconnect', function () {
     playerDisconnect(this);
   });
-  player.on('new player', function (data) {
-    newPlayer(data, this);
-  });
   player.on('move player', function (data) {
     movePlayer(data, this);
   });
@@ -121,20 +118,16 @@ var connectionFuncs = function (player) {
     takeCoin();
   });
   player.on('stage2.nextStage', function () {
-    endGame();
-    // const game = serverInfo.activeGames[0];
+    // endGame();
+    const game = serverInfo.activeGames[0];
 
-    // if (!game.wasStage2DoorAlreadyTouched) {
-    //   game.wasStage2DoorAlreadyTouched = true;
-    //   game.approxMinutesLeft = calculateApproxMinutesLeft(game.stages, game.currentStageIndex);
-    //   startNextStage(game);
-    //   game.stageTimer = setNextStageTimer(game);
-    // }
+    if (!game.wasStage2DoorAlreadyTouched) {
+      game.wasStage2DoorAlreadyTouched = true;
+      game.approxMinutesLeft = calculateApproxMinutesLeft(game.stages, game.currentStageIndex);
+      startNextStage(game);
+      game.stageTimer = setNextStageTimer(game);
+    }
   });
-  // player.on('startGame', function () {
-  //   console.log('STARTING GAME');
-  //   startNewGame(this);
-  // });
   player.on('store.witchHat', function () {
     const game = serverInfo.activeGames[0];
 
@@ -142,9 +135,6 @@ var connectionFuncs = function (player) {
       cancelStoreTimerAndStartNextStage();
     }
   });
-  // player.on('nextStage', function (fromStage) {
-  //   startNextStage(fromStage, this);
-  // });
 };
 
 function sendServerInfo() {
@@ -324,21 +314,25 @@ var repopPlayers = function (data, player) {
   console.log('repopPlayers server side function called');
 
   var pastSelf = findPlayer(player.id);
-  players.splice(players.indexOf(pastSelf), 1);
 
   // create a new player object
-  var nPlayer = new Player(data.x, data.y, data.angle);
-  if (findPlayer(player.id)) {
-    console.log('player already stored in server!');
-    return;
+  var nPlayer;
+  
+  if (!pastSelf) {
+    nPlayer = new Player(data.x, data.y, data.angle);
+  } else {
+    nPlayer = pastSelf;
+    nPlayer.socketRoom = pastSelf.socketRoom;
   }
-  nPlayer.id = pastSelf.id;
-  nPlayer.socketRoom = pastSelf.socketRoom;
+  nPlayer.id = player.id;
+  nPlayer.setX(data.x);
+  nPlayer.setY(data.y);
+  nPlayer.setAngle(data.angle);
 
   if (player.rooms[GAME_ROOM_NAME]) {
     // send this object to existing clients(except the sender),
     // in order to render this player for already loaded-in players
-    player.broadcast.to(GAME_ROOM_NAME).emit('newplayer', {
+    messageEveryoneInRoom(GAME_ROOM_NAME, player, 'newplayer', {
       id: nPlayer.id,
       x: nPlayer.getX(),
       y: nPlayer.getY(),
@@ -347,15 +341,8 @@ var repopPlayers = function (data, player) {
 
     // inform the newly created player 1 of previous players (to render all players on stage start)
     // for (var i = 0; i < players.length; i++) {
-    const activeGamePlayers = players.filter(player => player.socketRoom === GAME_ROOM_NAME);
-    activeGamePlayers.forEach(activeGamePlayer => {
-      player.emit('newplayer', {
-        id: activeGamePlayer.id,
-        x: activeGamePlayer.getX(),
-        y: activeGamePlayer.getY(),
-        angle: activeGamePlayer.getAngle(),
-      });
-    });
+    const otherActiveGamePlayers = players.filter(player => player.id !== nPlayer.id && player.socketRoom === GAME_ROOM_NAME);
+    messagePlayerToCreateOthers(player, otherActiveGamePlayers);
     // }
   } else {
     // send this object to existing clients in lobby(except the sender),
@@ -368,20 +355,29 @@ var repopPlayers = function (data, player) {
     } );
 
     // inform the newly created player 1 of previous players (to render all players on stage start)
-    const lobbyPlayers = players.filter(player => player.socketRoom !== GAME_ROOM_NAME);
-    lobbyPlayers.forEach(lobbyPlayer => {
-      player.emit('newplayer', {
-        id: lobbyPlayer.id,
-        x: lobbyPlayer.getX(),
-        y: lobbyPlayer.getY(),
-        angle: lobbyPlayer.getAngle(),
-      });
-    });
+    const otherLobbyPlayers = players.filter(player => player.id !== nPlayer.id && player.socketRoom !== GAME_ROOM_NAME);
+    messagePlayerToCreateOthers(player, otherLobbyPlayers);
   }
 
-  // //add to players array
-  players.push(nPlayer);
+  if (!pastSelf) {
+    players.push(nPlayer);
+  }
 };
+
+function messagePlayerToCreateOthers(player, others) {
+  others.forEach(otherPlayer => {
+    player.emit('newplayer', {
+      id: otherPlayer.id,
+      x: otherPlayer.getX(),
+      y: otherPlayer.getY(),
+      angle: otherPlayer.getAngle(),
+    });
+  });
+}
+
+function messageEveryoneInRoom(GAME_ROOM_NAME, player, event, data) {
+  player.broadcast.to(GAME_ROOM_NAME).emit(event, data);
+}
 
 // This function sends a message to everyone NOT in 'room1'
 // EXCLUDING self
@@ -403,69 +399,6 @@ function messageEveryoneNotInRoom(roomName, player, event, data) {
       }
   }
 }
-
-var newPlayer = function (data, player) {
-  var pastPlayer = findPlayer(player.id);
-
-  if (pastPlayer) {
-    console.log('player already stored in server!');
-    return;
-  }
-
-  // create a new player object
-  var nPlayer = new Player(data.x, data.y, data.angle);
-
-  nPlayer.id = player.id;
-  nPlayer.socketRoom = player.rooms[GAME_ROOM_NAME];
-
-  if (player.rooms[GAME_ROOM_NAME]) {
-    // send this object to existing clients(except the sender),
-    // in order to render this player for already loaded-in players
-    player.broadcast.to(GAME_ROOM_NAME).emit('newplayer', {
-      id: nPlayer.id,
-      x: nPlayer.getX(),
-      y: nPlayer.getY(),
-      angle: nPlayer.getAngle(),
-    });
-
-    // inform the newly created player 1 of previous players (to render all players on stage start)
-    // for (var i = 0; i < players.length; i++) {
-    const activeGamePlayers = players.filter(player => player.socketRoom === GAME_ROOM_NAME);
-    activeGamePlayers.forEach(activeGamePlayer => {
-      player.emit('newplayer', {
-        id: activeGamePlayer.id,
-        x: activeGamePlayer.getX(),
-        y: activeGamePlayer.getY(),
-        angle: activeGamePlayer.getAngle(),
-      });
-    });
-    // }
-  } else {
-    // send this object to existing clients in lobby(except the sender),
-    // in order to render this player for already loaded-in players in lobby
-    messageEveryoneNotInRoom(GAME_ROOM_NAME, player, 'newplayer', {
-      id: nPlayer.id,
-      x: nPlayer.getX(),
-      y: nPlayer.getY(),
-      angle: nPlayer.getAngle(),
-    } );
-
-    // inform the newly created player 1 of previous players (to render all players on stage start)
-    const lobbyPlayers = players.filter(player => player.socketRoom !== GAME_ROOM_NAME);
-    lobbyPlayers.forEach(lobbyPlayer => {
-      player.emit('newplayer', {
-        id: lobbyPlayer.id,
-        x: lobbyPlayer.getX(),
-        y: lobbyPlayer.getY(),
-        angle: lobbyPlayer.getAngle(),
-      });
-    });
-  }
-
-  //add to players array
-
-  players.push(nPlayer);
-};
 
 var movePlayer = function (data, player) {
   function hasMoved(incomingX, incomingY, incomingAngle) {

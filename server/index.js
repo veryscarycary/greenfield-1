@@ -388,7 +388,7 @@ function messageEveryoneNotInRoom(roomName, player, event, data) {
           var socket = io.sockets.sockets[socketId];
 
           if (socketId === player.id) {
-            break; // don't want to repop our own character
+            continue; // don't want to repop our own character
           }
 
           // Check if the socket is NOT in the room (therefore, in lobby)

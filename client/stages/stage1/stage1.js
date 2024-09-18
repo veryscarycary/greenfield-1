@@ -374,6 +374,10 @@ App.stage1.prototype = {
     this.lobbyText && this.lobbyText.destroy();
     this.startingText && this.startingText.destroy();
     this.lobbyCountdownText && this.lobbyCountdownText.destroy();
+
+    this.lobbyText = null;
+    this.startingText = null;
+    this.lobbyCountdownText = null;
   }
 };
 

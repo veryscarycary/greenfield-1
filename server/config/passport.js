@@ -14,9 +14,6 @@ var fbPassport = function(passport) {
   }, 
     function(accessToken, refreshToken, profile, done) {
       //process.nextTick is used for async functions
-      console.log("profile!!!!", profile);
-      // window.curUserID = profile.id;
-      //console.log("curUserID----->1", window.curUserID);
       process.nextTick(function() {
         User.findOne({'facebook.id': profile.id}, function(err, user) { 
           if (err) {

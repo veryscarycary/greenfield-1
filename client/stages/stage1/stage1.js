@@ -12,7 +12,6 @@ if (port && port !== "80" && port !== "443") {
 
 App.stage1 = function (game) {
   console.log('starting stage1');
-  console.log(game);
   App.info.game = game;
 };
 
@@ -58,7 +57,6 @@ App.stage1.prototype = {
 
     this.createPlayer();
 
-    console.log('create');
     // audio
     this.jump1Sound = this.sound.add('jump1', 0.3, false);
     this.jump2Sound = this.sound.add('jump2', 0.3, false);

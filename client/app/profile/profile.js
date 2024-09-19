@@ -10,10 +10,7 @@ angular.module('app.profile', [])
       data: { highscore: score }, 
     }).then(function(res) {
       var user = res.data;
-      //console.log("dataaaaaaaa: ", user);
       $scope.user.highscore = user.highscore;
-
-      console.log('USER: ', user);
     }, function(err) {
       console.log('error: ', err);
     });

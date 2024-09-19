@@ -44,8 +44,6 @@ router.put('/:username/highscore', async (req, res) => {
   try {
     const { username } = req.params;
     const { highscore } = req.body;
-    console.log('username', username);
-    console.log('highscore', highscore);
     const user = await User.findOneAndUpdate(
       { username },
       { highscore },

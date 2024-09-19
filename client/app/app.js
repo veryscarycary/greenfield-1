@@ -55,8 +55,6 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $scope.signupForm = {};
   
   $scope.$on( "$routeChangeStart", function(event, next, current) {
-    console.log('ROUTE CHANGE');
-
     if (App.info) {
       App.info.removePlayer(App.info.socket);
       App.info.socket.disconnect();

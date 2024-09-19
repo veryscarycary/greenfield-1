@@ -311,8 +311,6 @@ var playerDisconnect = function (player) {
 
 //a function used when changing stages-similair to new player
 var repopPlayers = function (data, player) {
-  console.log('repopPlayers server side function called');
-
   var pastSelf = findPlayer(player.id);
 
   // create a new player object

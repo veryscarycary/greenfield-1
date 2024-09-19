@@ -4,7 +4,6 @@ var App = {};
 
 App.stage0 = function (game) {
   console.log('starting stage0');
-  console.log(game);
   App.info.game = game;
 };
 
@@ -22,7 +21,6 @@ App.stage0.prototype = {
     function onButtonClick() {
       this.state.start('stage1');
     }
-    console.log('STAGE 0 CREATE');
 
     this.add.tileSprite(0, 0, 800, 600, 'background');
 

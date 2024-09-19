@@ -21,8 +21,6 @@ router.post('/signin', async (req, res) => {
     if (err) return res.status(500).send('Error on the server.');
     if (!user) return res.status(404).send('No user found.');
 
-    console.log(JSON.stringify(user));
-
     user.comparePassword(password, (err, isMatch) => {
       if (err) return res.status(500).send('Error on the server.');
       if (!isMatch) return res.status(401).send('Password is incorrect.');

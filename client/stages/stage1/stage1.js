@@ -406,14 +406,16 @@ App.info = {
     const scope = angular.element(controllerElement).scope();
 
     // Now you can access or manipulate the scope
-    scope.getUser().then(user => {
-      const highscore = user.highscore;
-
-      if (App.info.score > highscore) {
-        console.log(`Updating highscore for user '${scope.user.username}'`);
-        scope.updateHighscore(App.info.score);
-      }
-    }).catch(err => console.error('Failed to fetch user: ', err.message));
+    if (scope) {
+      scope.getUser().then(user => {
+        const highscore = user.highscore;
+  
+        if (App.info.score > highscore) {
+          console.log(`Updating highscore for user '${scope.user.username}'`);
+          scope.updateHighscore(App.info.score);
+        }
+      }).catch(err => console.error('Failed to fetch user: ', err.message));
+    }
   }, 10000),
 
   //these event handlers trigger functions no matter what stage you are on

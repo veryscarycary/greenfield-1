@@ -8,10 +8,8 @@ angular.module('app.leaderboard', [])
       method: 'GET',
       url: `/api/leaderboard`,
     }).then(function(res) {
-      console.log('res.data,', res.data)
       var leaderboard = res.data;
       $scope.leaderboard = leaderboard;
-      console.log('leaderboard', $scope.leaderboard)
     }, function(err) {
       console.log('error: ', err);
     });

@@ -1,17 +1,21 @@
 <div class="login-container">
   <link rel="stylesheet" href="./app/signup/signup.css">
   <h1>Sign Up</h1>
+  <div class="error-box mb-4" ng-if="hasSignupError">
+    Sorry, your username or password was not valid. Please try again.
+  </div>
   <form class="form-container">
-    <label for="username">Username:</label>
-    <input type="text" id="username" ng-model="signupForm.username" required>
-    <br />
-    <label for="password">Password:</label>
-    <input type="password" id="password" ng-model="signupForm.password" required>
-    <br />
+    <div class="form-field mb-4">
+      <label for="username">Username:</label>
+      <input type="text" id="username" ng-model="signupForm.username" ng-keydown="checkKeyPress($event)" required>
+    </div>
+    <div class="form-field mb-4">
+      <label for="password">Password:</label>
+      <input type="password" id="password" ng-model="signupForm.password" ng-keydown="checkKeyPress($event)" required>
+    </div>
     <br />
     <button class="btn-primary" type="button" ng-click="signup()">Sign up</button>
   </form>
-  <br>
   <br>
     <a href="/signin">Have an account already? Sign-in now!</a>
 </div>

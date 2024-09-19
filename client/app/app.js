@@ -6,11 +6,11 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   $routeProvider
     .when('/signin', {
       templateUrl: './app/signin/signin.html',
-      Controller: 'SigninController'
+      controller: 'SigninController'
     })
     .when('/signup', {
       templateUrl: './app/signup/signup.html',
-      Controller: 'SignupController'
+      controller: 'SignupController'
     })
     .when('/game', {
       templateUrl: './app/game/game.html',
@@ -86,6 +86,13 @@ angular.module('app', ['ngRoute', 'app.game', 'app.profile', 'app.leaderboard', 
   };
 
   $scope.signup = function() {
+    $scope.hasSignupError = false;
+
+    if (!$scope.signupForm.username || !$scope.signupForm.password) {
+      $scope.hasSignupError = true;
+      return;
+    }
+
   	$http({
   		method: 'POST',
   		url: '/api/auth/signup',

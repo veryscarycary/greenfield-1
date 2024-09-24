@@ -614,7 +614,12 @@ App.stage4.prototype = {
   dead: function(player) {
     dead = true;
     player.alpha = 0.5;
-  }
+  },
+  cleanup: function() {
+    clearTimeout(this.starPowerTimeout);
+    this.starPowerTimeout = null;
+    this.starPowerSound.stop();
+  },
 };  
 
 //make platforms

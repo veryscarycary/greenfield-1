@@ -164,11 +164,6 @@ App.stage1.prototype = {
       y: player.y,
       angle: player.angle,
     });
-
-    App.info.socket.emit('stage1.moveBox', {
-      x: this.box.x,
-      y: this.box.y,
-    });
   },
 
   // Stage1 Utils
@@ -314,7 +309,12 @@ App.stage1.prototype = {
     this.physics.arcade.collide(player, platforms);
     this.physics.arcade.collide(coin, platforms);
     this.physics.arcade.collide(box, platforms);
-    this.physics.arcade.collide(player, box);
+    this.physics.arcade.collide(player, box, () => {
+      App.info.socket.emit('stage1.moveBox', {
+        x: this.box.x,
+        y: this.box.y,
+      });
+    });
     this.physics.arcade.collide(player, coin, () => {
       App.info.socket.emit('stage1.takeCoin');
     });

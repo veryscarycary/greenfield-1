@@ -118,7 +118,6 @@ var connectionFuncs = function (player) {
     takeCoin();
   });
   player.on('stage2.nextStage', function () {
-    // endGame();
     const game = serverInfo.activeGames[0];
 
     if (!game.wasStage2DoorAlreadyTouched) {
@@ -276,9 +275,9 @@ var setGameSocketRoom = function() {
 
 var resetGameSocketRoom = function() {
   // Map over the players to set their socket room and get their sockets
-  serverInfo.activeGames[0].players.forEach(player => {
+  players.forEach(player => {
     player.socketRoom = null;
-    if (io.sockets.sockets[player.id]) {
+    if (io.sockets.sockets[player.id] && io.sockets.socket[player.id].rooms[GAME_ROOM_NAME]) {
       io.sockets.sockets[player.id].leave(GAME_ROOM_NAME); // Access the socket by player ID directly
     }
   });

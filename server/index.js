@@ -24,6 +24,8 @@ const STAGE_TIME_SPACE = 60;
 
 const GAME_ROOM_NAME = 'game0';
 
+const TOTAL_GAME_TIME_LIMIT = 1800; // 30 minutes
+
 var players = [];
 
 app.use(express.static(__dirname + '/../client'));
@@ -194,6 +196,8 @@ var constructGameObject = function () {
     wasStage2DoorAlreadyTouched: false,
     wasStoreWitchHatAlreadyTouched: false,
     approxMinutesLeft: calculateApproxMinutesLeft(stages, 0),
+    totalGameTime: 0,
+    totalGameTimeTimer: setInterval(() => game.totalGameTime += 1, 1000),
   };
 
   return game;
@@ -204,7 +208,7 @@ var startNextStage = function (game) {
 
   // GAME END, go back to lobby
   if (game.currentStageIndex >= game.stages.length) {
-    endGame();
+    endGame(game);
   } else {
     io.to(GAME_ROOM_NAME).emit('startStage', game.stages[game.currentStageIndex].name);
   }
@@ -258,10 +262,14 @@ var cancelStoreTimerAndStartNextStage = function () {
   game.wasStoreWitchHatAlreadyTouched = true;
 }
 
-var endGame = function () {
+var endGame = function(game) {
   // Start next stage for all players in current game
   io.to(GAME_ROOM_NAME).emit('startStage', 'stage1');
   resetGameSocketRoom();
+  clearInterval(game.totalGameTimeTimer);
+  game.totalGameTimeTimer = null;
+
+  // NOTE: Only 1 active game supported atm, so clear all games
   serverInfo.activeGames = [];
 };
 
@@ -299,8 +307,9 @@ var playerDisconnect = function (player) {
   if (game && game.players.indexOf(removedPlayer) >= 0) {
     game.players.splice(game.players.indexOf(removedPlayer), 1);
 
+    // No more players remain in the game, end game
     if (game.players.length === 0) {
-      serverInfo.activeGames.splice(serverInfo.activeGames.indexOf(game), 1);
+      endGame(game);
     }
   }
 
@@ -479,7 +488,12 @@ http.listen(port, ip, function () {
 process.on('SIGINT', () => process.exit(1));
 
 setInterval(() => {
-  sendServerInfo();
-  if (serverInfo.activeGames.length)
-    console.log('serverInfo.approxMinutesLeft', JSON.stringify(serverInfo.activeGames[0].approxMinutesLeft));
+  if (players.length) {
+    sendServerInfo();
+  }
+
+  // if a user sits on stage 2 long enough without progress, end the game
+  if (serverInfo.activeGames.length && serverInfo.activeGames[0].totalGameTime > TOTAL_GAME_TIME_LIMIT) {
+    endGame(serverInfo.activeGames[0]);
+  }
 }, 1000)

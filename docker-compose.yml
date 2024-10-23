@@ -2,6 +2,7 @@ services:
   mongodb:
     container_name: mongodb
     image: mongo:7.0
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -12,6 +13,7 @@ services:
   frenemies:
     container_name: frenemies
     build: .
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
